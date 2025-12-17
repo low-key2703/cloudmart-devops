@@ -20,7 +20,7 @@ Production-grade, cloud-native e-commerce platform demonstrating enterprise-leve
 - **Security:** Trivy, RBAC, Network Policies, Sealed Secrets
 
 ## Project Structure
-
+```
 cloudmart-devops/
 ├── applications/          # Microservices source code
 │   ├── api-gateway/       # Node.js/Express
@@ -35,6 +35,7 @@ cloudmart-devops/
 ├── monitoring/           # Prometheus, Grafana configs
 ├── scripts/              # Automation scripts
 └── docs/                 # Documentation
+```
 
 ## Quick Start
 
