@@ -86,3 +86,7 @@ docker run -d --name cloudmart-postgres \
 - `/health` - Liveness probe (is it running?)
 - `/ready` - Readiness probe (can it serve traffic?)
 - `/metrics` - Prometheus scraping endpoint
+
+---
+**Note:** All credentials in this documentation are for local development only. 
+Never use default passwords in production environments.
