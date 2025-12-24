@@ -14,8 +14,18 @@ const app = express();
 
 app.use(helmet());
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return next(); // Skip body parsing for proxied routes
+  }
+  express.json()(req, res, next);
+});
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  express.urlencoded({ extended: true })(req, res, next);
+});
 app.use(morgan('combined'));
 app.use(metricsMiddleware);
 app.use(rateLimiter);
