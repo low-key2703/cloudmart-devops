@@ -5,88 +5,66 @@
 ### Environment Setup
 - WSL2 Ubuntu on Windows
 - Docker Desktop with WSL2 integration
-- Node.js 20, Python 3.10, Go 1.25
+- Node.js 20, Python 3.10, Go 1.21
 - kubectl, Minikube
-- Git + GitHub (SSH/PAT auth)
+- Git + GitHub
 
-### API Gateway (Node.js/Express) - Port 3000
-Location: `applications/api-gateway/`
+### Microservices
 
-**Features:**
-- Request routing to microservices
-- JWT authentication middleware
-- Rate limiting (100 req/min per IP)
-- Health endpoint (`/health`)
-- Prometheus metrics (`/metrics`)
-- Proxy to Product, Order, User services
+| Service | Tech | Port | Status |
+|---------|------|------|--------|
+| API Gateway | Node.js/Express | 3000 | ✅ Complete |
+| Product Service | Python/FastAPI | 8000 | ✅ Complete |
+| Order Service | Go/Gin | 8080 | ✅ Complete |
+| User Service | Node.js/Express | 3001 | ✅ Complete |
 
-**Key files:**
-- `src/index.js` - Main entry, middleware chain
-- `src/config/index.js` - Environment-based config
-- `src/middleware/auth.js` - JWT validation
-- `src/middleware/rateLimiter.js` - Rate limiting
-- `src/routes/health.js` - Health checks
-- `src/routes/metrics.js` - Prometheus metrics
+### Docker Compose
+- All services containerized
+- PostgreSQL with health checks
+- Resource limits defined
+- Volume persistence
 
-**Run:** `npm run dev`
+### Kubernetes
+Location: `infrastructure/kubernetes/base/`
 
-### Product Service (Python/FastAPI) - Port 8000
-Location: `applications/product-service/`
+**Deployed:**
+- Namespace (`cloudmart-dev`)
+- All 4 microservices (Deployments + Services)
+- PostgreSQL (StatefulSet + PVC)
+- ConfigMaps and Secrets
+- Liveness/Readiness probes
+- Resource requests/limits
 
-**Features:**
-- Product CRUD operations
-- Category management
-- Pagination and search
-- Stock management
-- PostgreSQL with SQLAlchemy ORM
-- Health and readiness endpoints
-- Prometheus metrics
-
-**Key files:**
-- `app/main.py` - FastAPI app, middleware
-- `app/config/settings.py` - Pydantic settings
-- `app/models/database.py` - DB connection
-- `app/models/product.py` - SQLAlchemy models
-- `app/schemas/product.py` - Pydantic schemas
-- `app/routers/products.py` - API endpoints
-
-**Run:** `source venv/bin/activate && python run.py`
-
-**Requires:** PostgreSQL on port 5432
-```bash
-docker run -d --name cloudmart-postgres \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=cloudmart \
-  -p 5432:5432 postgres:15-alpine
-```
-
-## In Progress
-- Order Service (Go/Gin)
-
-## Pending
-- User Service (Node.js/Express)
-- Docker Compose for all services
-- Dockerfiles for each service
-- Kubernetes manifests
-- CI/CD with GitHub Actions
-- ArgoCD GitOps setup
-- Prometheus + Grafana monitoring
-- Security (Trivy, RBAC, Network Policies)
-
-## Key Concepts Learned
-
-### 12-Factor App Principles Applied
-- Config from environment variables
-- Stateless services
-- Port binding
-- Health checks for process management
-
-### API Design Patterns
-- `/health` - Liveness probe (is it running?)
-- `/ready` - Readiness probe (can it serve traffic?)
-- `/metrics` - Prometheus scraping endpoint
+**Tested end-to-end:** Auth flow, service routing, database persistence
 
 ---
-**Note:** All credentials in this documentation are for local development only. 
-Never use default passwords in production environments.
+
+## In Progress
+- Ingress Controller
+
+## Pending
+- CI/CD (GitHub Actions)
+- GitOps (ArgoCD)
+- Monitoring (Prometheus, Grafana, Loki)
+- Security (Trivy, RBAC, Network Policies, Sealed Secrets)
+
+---
+
+## Quick Reference
+```bash
+# Build and deploy
+eval $(minikube docker-env)
+docker-compose build
+kubectl apply -f infrastructure/kubernetes/base/ -n cloudmart-dev
+
+# Access
+minikube service cloudmart-api-gateway-service -n cloudmart-dev --url
+
+# Debug
+kubectl get pods -n cloudmart-dev
+kubectl logs -n cloudmart-dev <pod-name>
+```
+
+---
+
+**Note:** Secrets are gitignored. Use `*.example.yaml` files as templates.
