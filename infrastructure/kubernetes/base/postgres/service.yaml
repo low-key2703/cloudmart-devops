@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudmart-postgres-database-service
+  namespace: cloudmart-dev
+  labels:
+    app: postgres-database
+spec:
+  selector:
+    app: postgres-database
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432

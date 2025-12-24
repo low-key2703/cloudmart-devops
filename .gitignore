@@ -34,5 +34,9 @@ logs/
 *.tfvars
 
 # Kubernetes secrets
+**/secret.yaml
+**/secrets.yaml
+**/jwt-secret.yaml
+!**/*secret.example.yaml
 *-secret.yaml
 !*-secret.example.yaml

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cloudmart-postgres-database-statefulset
+  namespace: cloudmart-dev
+  labels:
+    app: postgres-database
+spec:
+  serviceName: cloudmart-postgres-database-sfs-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-database
+  template:
+    metadata:
+      labels:
+        app: postgres-database
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: cloudmart-postgres-database-configmap
+            - secretRef:
+                name: cloudmart-postgres-database-secret
+          volumeMounts:
+            - name: cloudmart-postgres-database-volume
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "1000m"
+
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - $(POSTGRES_USER)
+            initialDelaySeconds: 20
+            periodSeconds: 10
+
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - $(POSTGRES_USER)
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+      volumes:
+        - name: cloudmart-postgres-database-volume
+          persistentVolumeClaim:
+            claimName: cloudmart-postgres-database-pvc

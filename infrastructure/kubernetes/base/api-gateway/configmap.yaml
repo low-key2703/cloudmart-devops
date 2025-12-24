@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudmart-api-gateway-configmap
+  namespace: cloudmart-dev
+data:
+  PRODUCT_SERVICE_URL: http://cloudmart-product-service-service:8000
+  ORDER_SERVICE_URL: http://cloudmart-order-service-service:8080
+  USER_SERVICE_URL: http://cloudmart-user-service-service:3001

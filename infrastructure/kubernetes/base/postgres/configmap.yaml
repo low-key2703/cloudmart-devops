@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudmart-postgres-database-configmap
+  namespace: cloudmart-dev
+data:
+  POSTGRES_DB: cloudmart
