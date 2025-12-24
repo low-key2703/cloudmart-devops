@@ -3,7 +3,7 @@ const config = require('../config');
 
 const authMiddleware = (req, res, next) => {
   const publicPaths = ['/health', '/metrics', '/api/v1/auth/login', '/api/v1/auth/register'];
-  if (publicPaths.some(path => req.path.startsWith(path))) {
+  if (publicPaths.some(path => req.originalUrl.startsWith(path))) {
     return next();
   }
   const authHeader = req.headers.authorization;
