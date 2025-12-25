@@ -40,3 +40,4 @@ logs/
 !**/*secret.example.yaml
 *-secret.yaml
 !*-secret.example.yaml
+infrastructure/kubernetes/base/ingress/certs/
