@@ -1,0 +1,125 @@
+namespace: cloudmart-dev
+
+redis:
+  replicas: 1
+  image:
+    repository: redis
+    tag: 7-alpine
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "125m"
+    limits:
+      memory: "128Mi"
+      cpu: "250m"
+  service:
+    port: 6379
+    targetPort: 6379
+
+apiGateway:
+  replicas: 2
+  image:
+    repository: cloudmart-api-gateway
+    tag: latest
+    pullPolicy: Never
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "250m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  service:
+    type: NodePort
+    port: 3000
+    targetPort: 3000
+    nodePort: 30007
+  config:
+    PRODUCT_SERVICE_URL: "http://cloudmart-product-service-service:8000"
+    ORDER_SERVICE_URL: "http://cloudmart-order-service-service:8080"
+    USER_SERVICE_URL: "http://cloudmart-user-service-service:3001"
+    REDIS_URL: "redis://cloudmart-redis-service:6379"
+
+productService:
+  replicas: 2
+  image:
+    repository: cloudmart-product-service
+    tag: latest
+    pullPolicy: Never
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "250m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  service:
+    port: 8000
+    targetPort: 8000
+  config:
+    REDIS_URL: "redis://cloudmart-redis-service:6379"
+
+orderService:
+  replicas: 2
+  image:
+    repository: cloudmart-order-service
+    tag: latest
+    pullPolicy: Never
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "250m"
+    limits:
+      memory: "128Mi"
+      cpu: "500m"
+  service:
+    port: 8080
+    targetPort: 8080
+
+userService:
+  replicas: 2
+  image:
+    repository: cloudmart-user-service
+    tag: latest
+    pullPolicy: Never
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "250m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  service:
+    port: 3001
+    targetPort: 3001
+    type: NodePort
+    nodePort: 30008
+
+postgres:
+  replicas: 1
+  image:
+    repository: postgres
+    tag: 15-alpine
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "500m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+  service:
+    port: 5432
+    targetPort: 5432
+  storage:
+    size: 1Gi
+    # className: standard  # optional
+  config:
+    POSTGRES_DB: cloudmart
+
+ingress:
+  enabled: true
+  className: nginx
+  host: cloudmart.local
+  tls:
+    enabled: true
+    secretName: cloudmart-tls-secret

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudmart-order-service-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: order-service
+spec:
+  replicas: {{ .Values.orderService.replicas }}
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: "{{ .Values.orderService.image.repository }}:{{ .Values.orderService.image.tag }}"
+          imagePullPolicy: {{ .Values.orderService.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: cloudmart-order-service-secret
+          resources:
+            {{- toYaml .Values.orderService.resources | nindent 12 }}
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudmart-redis-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: redis
+spec:
+  replicas: {{ .Values.redis.replicas }}
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 6379
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 5

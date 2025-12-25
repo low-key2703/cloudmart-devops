@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudmart-product-service-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: product-service
+spec:
+  replicas: {{ .Values.productService.replicas }}
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image:  "{{ .Values.productService.image.repository }}:{{ .Values.productService.image.tag }}"
+          imagePullPolicy: {{ .Values.productService.image.pullPolicy }}
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: cloudmart-product-service-secret
+            - configMapRef:
+                name: cloudmart-product-service-configmap
+          resources:
+            {{- toYaml .Values.productService.resources | nindent 12 }}
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3

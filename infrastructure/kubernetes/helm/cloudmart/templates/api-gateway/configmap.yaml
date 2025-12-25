@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudmart-api-gateway-configmap
+  namespace: {{ .Values.namespace }}
+data:
+  {{- toYaml .Values.apiGateway.config | nindent 2 }}

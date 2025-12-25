@@ -1,0 +1,84 @@
+namespace: cloudmart-prod
+
+redis:
+  replicas: 3
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "750m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+apiGateway:
+  replicas: 3
+  image:
+    pullPolicy: Always
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "750m"
+    limits:
+      memory: "1024Mi"
+      cpu: "1000m"
+  service:
+    type: ClusterIP
+
+productService:
+  replicas: 3
+  image:
+    pullPolicy: Always
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "750m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+
+orderService:
+  replicas: 3
+  image:
+    pullPolicy: Always
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "750m"
+    limits:
+      memory: "256Mi"
+      cpu: "1000m"
+
+userService:
+  replicas: 3
+  image:
+    pullPolicy: Always
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "750m"
+    limits:
+      memory: "1024Mi"
+      cpu: "1000m"
+  service:
+    type: ClusterIP
+
+postgres:
+  replicas: 1
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "1000m"
+    limits:
+      memory: "1024Mi"
+      cpu: "2000m"
+  storage:
+    size: 10Gi
+    className: standard
+
+ingress:
+  enabled: true
+  className: nginx
+  host: cloudmart.prod
+  tls:
+    enabled: true
+    secretName: cloudmart-prod-tls-secret

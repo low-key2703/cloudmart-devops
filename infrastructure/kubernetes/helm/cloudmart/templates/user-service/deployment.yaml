@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudmart-user-service-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: user-service
+spec:
+  replicas: {{ .Values.userService.replicas }}
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: "{{ .Values.userService.image.repository }}:{{ .Values.userService.image.tag }}"
+          imagePullPolicy: {{ .Values.userService.image.pullPolicy }}
+          ports:
+            - containerPort: 3001
+          envFrom:
+            - secretRef:
+                name: cloudmart-user-service-secret
+            - secretRef:
+                name: cloudmart-jwt-secret
+          resources:
+            {{- toYaml .Values.userService.resources | nindent 12 }}
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 30
+            periodSeconds: 30
+
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
