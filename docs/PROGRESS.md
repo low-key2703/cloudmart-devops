@@ -6,7 +6,7 @@
 - WSL2 Ubuntu on Windows
 - Docker Desktop with WSL2 integration
 - Node.js 20, Python 3.10, Go 1.21
-- kubectl, Minikube
+- kubectl, Minikube, Helm
 - Git + GitHub
 
 ### Microservices
@@ -25,10 +25,9 @@
 - Resource limits defined
 - Volume persistence
 
-### Kubernetes
+### Kubernetes (Raw Manifests)
 Location: `infrastructure/kubernetes/base/`
 
-**Deployed:**
 - Namespace (`cloudmart-dev`)
 - All 4 microservices (Deployments + Services)
 - PostgreSQL (StatefulSet + PVC)
@@ -38,22 +37,29 @@ Location: `infrastructure/kubernetes/base/`
 - Liveness/Readiness probes
 - Resource requests/limits
 
-**Tested end-to-end:** Auth flow, service routing, database persistence, Redis caching
+### Helm Charts
+Location: `infrastructure/kubernetes/helm/cloudmart/`
 
-### Redis Integration
-- API Gateway: Redis-backed rate limiting (graceful fallback)
-- Product Service: Cache products/categories with TTL
-- K8s ConfigMaps updated with REDIS_URL
+**Chart Structure:**
+- 17 templated resources
+- Environment-specific values (`values.yaml`, `values-prod.yaml`)
+- Organized by service (redis/, api-gateway/, postgres/, etc.)
 
-### Ingress
-- NGINX Ingress Controller
-- TLS termination with self-signed cert
-- Host: `cloudmart.local`
+**Templated:**
+- Namespace, replicas, images, resources
+- Storage size/class for PostgreSQL
+- Ingress host and TLS config
+- Service types (NodePort/ClusterIP)
+
+**Deployed and tested via:**
+```bash
+helm install cloudmart . -n cloudmart-dev
+```
 
 ---
 
 ## In Progress
-- Helm Charts
+- Helm polish (_helpers.tpl, NOTES.txt) - Optional
 
 ## Pending
 - Horizontal Pod Autoscaler (HPA)
@@ -68,24 +74,23 @@ Location: `infrastructure/kubernetes/base/`
 
 ## Quick Reference
 ```bash
-# Build and deploy
+# Helm deployment
+cd infrastructure/kubernetes/helm/cloudmart
+helm install cloudmart . -n cloudmart-dev
+helm upgrade cloudmart . -n cloudmart-dev
+helm list -n cloudmart-dev
+
+# Build images into Minikube
 eval $(minikube docker-env)
 docker-compose build
-kubectl apply -f infrastructure/kubernetes/base/ -n cloudmart-dev
 
 # Access via Ingress
 minikube service ingress-nginx-controller -n ingress-nginx --url
 curl -k https://cloudmart.local:<port>/health
 
-# Access via NodePort (fallback)
-minikube service cloudmart-api-gateway-service -n cloudmart-dev --url
-
 # Debug
 kubectl get pods -n cloudmart-dev
 kubectl logs -n cloudmart-dev <pod-name>
-
-# Test Redis
-kubectl exec -it deployment/cloudmart-redis-deployment -n cloudmart-dev -- redis-cli ping
 ```
 
 ---
