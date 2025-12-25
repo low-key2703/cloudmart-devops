@@ -10,7 +10,6 @@
 - Git + GitHub
 
 ### Microservices
-
 | Service | Tech | Port | Status |
 |---------|------|------|--------|
 | API Gateway | Node.js/Express | 3000 | ✅ Complete |
@@ -21,6 +20,8 @@
 ### Docker Compose
 - All services containerized
 - PostgreSQL with health checks
+- Redis for caching/rate-limiting
+- Automated migrations (init-db.sh)
 - Resource limits defined
 - Volume persistence
 
@@ -31,22 +32,37 @@ Location: `infrastructure/kubernetes/base/`
 - Namespace (`cloudmart-dev`)
 - All 4 microservices (Deployments + Services)
 - PostgreSQL (StatefulSet + PVC)
+- Redis (Deployment + Service)
+- Ingress with TLS (self-signed cert)
 - ConfigMaps and Secrets
 - Liveness/Readiness probes
 - Resource requests/limits
 
-**Tested end-to-end:** Auth flow, service routing, database persistence
+**Tested end-to-end:** Auth flow, service routing, database persistence, Redis caching
+
+### Redis Integration
+- API Gateway: Redis-backed rate limiting (graceful fallback)
+- Product Service: Cache products/categories with TTL
+- K8s ConfigMaps updated with REDIS_URL
+
+### Ingress
+- NGINX Ingress Controller
+- TLS termination with self-signed cert
+- Host: `cloudmart.local`
 
 ---
 
 ## In Progress
-- Ingress Controller
+- Helm Charts
 
 ## Pending
+- Horizontal Pod Autoscaler (HPA)
+- Network Policies
+- Sealed Secrets
 - CI/CD (GitHub Actions)
 - GitOps (ArgoCD)
 - Monitoring (Prometheus, Grafana, Loki)
-- Security (Trivy, RBAC, Network Policies, Sealed Secrets)
+- Security (Trivy, RBAC)
 
 ---
 
@@ -57,14 +73,21 @@ eval $(minikube docker-env)
 docker-compose build
 kubectl apply -f infrastructure/kubernetes/base/ -n cloudmart-dev
 
-# Access
+# Access via Ingress
+minikube service ingress-nginx-controller -n ingress-nginx --url
+curl -k https://cloudmart.local:<port>/health
+
+# Access via NodePort (fallback)
 minikube service cloudmart-api-gateway-service -n cloudmart-dev --url
 
 # Debug
 kubectl get pods -n cloudmart-dev
 kubectl logs -n cloudmart-dev <pod-name>
+
+# Test Redis
+kubectl exec -it deployment/cloudmart-redis-deployment -n cloudmart-dev -- redis-cli ping
 ```
 
 ---
 
-**Note:** Secrets are gitignored. Use `*.example.yaml` files as templates.
+**Note:** Secrets and TLS certs are gitignored. Use `*.example.yaml` files as templates.
