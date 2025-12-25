@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudmart-product-service-configmap
+  namespace: cloudmart-dev
+data:
+  REDIS_URL: redis://cloudmart-redis-service:6379

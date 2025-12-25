@@ -24,6 +24,8 @@ spec:
           envFrom:
             - secretRef:
                 name: cloudmart-product-service-secret
+            - configMapRef:
+                name: cloudmart-product-service-configmap
           resources:
             requests:
               memory: "128Mi"
