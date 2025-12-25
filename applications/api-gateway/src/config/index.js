@@ -11,6 +11,9 @@ module.exports = {
     windowMs: 60 * 1000,
     max: 100
   },
+  redis: {
+    url: process.env.REDIS_URL || 'redis://localhost:6379'
+  },
   services: {
     productService: process.env.PRODUCT_SERVICE_URL || 'http://localhost:8000',
     orderService: process.env.ORDER_SERVICE_URL || 'http://localhost:8080',

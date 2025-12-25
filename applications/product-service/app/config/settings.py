@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from typing import Optional
 
 class Settings(BaseSettings):
     # App info
@@ -12,6 +13,10 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "postgresql://postgres:postgres@localhost:5432/cloudmart"
+
+    # Redis
+    redis_url: Optional[str] = None
+    cache_ttl: int = 300
 
     class Config:
         env_file = ".env"
