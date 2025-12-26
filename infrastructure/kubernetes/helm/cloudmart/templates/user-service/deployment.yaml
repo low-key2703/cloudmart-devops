@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloudmart-user-service-deployment
+  name: {{ include "cloudmart.componentName" (dict "component" "user-service" "context" .) }}-deployment
   namespace: {{ .Values.namespace }}
   labels:
-    app: user-service
+    {{- include "cloudmart.componentLabels" (dict "component" "user-service" "context" .) | nindent 4 }}
 spec:
   replicas: {{ .Values.userService.replicas }}
   selector:
     matchLabels:
-      app: user-service
+      {{- include "cloudmart.componentSelectorLabels" (dict "component" "user-service" "context" .) | nindent 6 }}
   template:
     metadata:
       labels:
-        app: user-service
+        {{- include "cloudmart.componentSelectorLabels" (dict "component" "user-service" "context" .) | nindent 8 }}
     spec:
       containers:
         - name: user-service

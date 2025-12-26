@@ -1,0 +1,55 @@
+CloudMart has been deployed!
+
+== Release Info ==
+  Name:      {{ .Release.Name }}
+  Namespace: {{ .Values.namespace }}
+
+== Access ==
+{{- if .Values.ingress.enabled }}
+  # Get Ingress URL (Minikube)
+  minikube service ingress-nginx-controller -n ingress-nginx --url
+
+  # Then access:
+  curl -k https://{{ .Values.ingress.host }}:<port>/health
+{{- else }}
+  # Port-forward to API Gateway
+  kubectl port-forward svc/{{ include "cloudmart.componentName" (dict "component" "api-gateway" "context" .) }}-service 3000:3000 -n {{ .Values.namespace }}
+  curl http://localhost:3000/health
+{{- end }}
+
+== Verify ==
+  # Check all pods are running
+  kubectl get pods -n {{ .Values.namespace }}
+
+  # Check all services
+  kubectl get svc -n {{ .Values.namespace }}
+
+  # Watch pods come up
+  kubectl get pods -n {{ .Values.namespace }} -w
+
+== Debug ==
+  # View logs for a service
+  kubectl logs -n {{ .Values.namespace }} -l app.kubernetes.io/name=api-gateway
+
+  # Describe a pod
+  kubectl describe pod -n {{ .Values.namespace }} -l app.kubernetes.io/name=api-gateway
+
+== Prerequisites ==
+  The following secrets must be created BEFORE deploying:
+
+  - cloudmart-jwt-secret                 (JWT_SECRET)
+  - cloudmart-postgres-database-secret   (POSTGRES_USER, POSTGRES_PASSWORD)
+  - cloudmart-product-service-secret     (DATABASE_URL)
+  - cloudmart-order-service-secret       (DATABASE_URL)
+  - cloudmart-user-service-secret        (DATABASE_URL)
+
+  Apply secrets:
+  kubectl apply -f path/to/secrets/ -n {{ .Values.namespace }}
+
+== Services Deployed ==
+  - API Gateway:     {{ include "cloudmart.componentName" (dict "component" "api-gateway" "context" .) }}-service:3000
+  - Product Service: {{ include "cloudmart.componentName" (dict "component" "product-service" "context" .) }}-service:8000
+  - Order Service:   {{ include "cloudmart.componentName" (dict "component" "order-service" "context" .) }}-service:8080
+  - User Service:    {{ include "cloudmart.componentName" (dict "component" "user-service" "context" .) }}-service:3001
+  - PostgreSQL:      {{ include "cloudmart.componentName" (dict "component" "postgres-database" "context" .) }}-service:5432
+  - Redis:           {{ include "cloudmart.componentName" (dict "component" "redis" "context" .) }}-service:6379

@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloudmart-api-gateway-deployment
+  name: {{ include "cloudmart.componentName" (dict "component" "api-gateway" "context" .) }}-deployment
   namespace: {{ .Values.namespace }}
   labels:
-    app: api-gateway
+    {{- include "cloudmart.componentLabels" (dict "component" "api-gateway" "context" .) | nindent 4 }}
 spec:
   replicas: {{ .Values.apiGateway.replicas }}
   selector:
     matchLabels:
-      app: api-gateway
+      {{- include "cloudmart.componentSelectorLabels" (dict "component" "api-gateway" "context" .) | nindent 6 }}
   template:
     metadata:
       labels:
-        app: api-gateway
+        {{- include "cloudmart.componentSelectorLabels" (dict "component" "api-gateway" "context" .) | nindent 8 }}
     spec:
       containers:
         - name: api-gateway
@@ -23,7 +23,7 @@ spec:
             - containerPort: 3000
           envFrom:
             - configMapRef:
-                name: cloudmart-api-gateway-configmap
+                name: {{ include "cloudmart.componentName" (dict "component" "api-gateway" "context" .) }}-configmap
             - secretRef:
                 name: cloudmart-jwt-secret
           resources:

@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: cloudmart-postgres-database-statefulset
+  name: {{ include "cloudmart.componentName" (dict "component" "postgres-database" "context" .) }}-statefulset
   namespace: {{ .Values.namespace }}
   labels:
-    app: postgres-database
+    {{- include "cloudmart.componentLabels" (dict "component" "postgres-database" "context" .) | nindent 4 }}
 spec:
-  serviceName: cloudmart-postgres-database-sfs-service
+  serviceName: {{ include "cloudmart.componentName" (dict "component" "postgres-database" "context" .) }}-service
   replicas: {{ .Values.postgres.replicas }}
   selector:
     matchLabels:
-      app: postgres-database
+      {{- include "cloudmart.componentSelectorLabels" (dict "component" "postgres-database" "context" .) | nindent 6 }}
   template:
     metadata:
       labels:
-        app: postgres-database
+        {{- include "cloudmart.componentSelectorLabels" (dict "component" "postgres-database" "context" .) | nindent 8 }}
     spec:
       containers:
         - name: postgres
@@ -24,7 +24,7 @@ spec:
             - containerPort: 5432
           envFrom:
             - configMapRef:
-                name: cloudmart-postgres-database-configmap
+                name: {{ include "cloudmart.componentName" (dict "component" "postgres-database" "context" .) }}-configmap
             - secretRef:
                 name: cloudmart-postgres-database-secret
           volumeMounts:
@@ -54,4 +54,4 @@ spec:
       volumes:
         - name: cloudmart-postgres-database-volume
           persistentVolumeClaim:
-            claimName: cloudmart-postgres-database-pvc
+            claimName: {{ include "cloudmart.componentName" (dict "component" "postgres-database" "context" .) }}-pvc

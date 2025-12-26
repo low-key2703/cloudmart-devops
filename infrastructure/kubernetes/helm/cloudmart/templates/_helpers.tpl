@@ -60,3 +60,30 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Component full name
+Usage: {{ include "cloudmart.componentName" (dict "component" "api-gateway" "context" .) }}
+*/}}
+{{- define "cloudmart.componentName" -}}
+{{- printf "%s-%s" .context.Release.Name .component -}}
+{{- end }}
+
+{{/*
+Component labels
+*/}}
+{{- define "cloudmart.componentLabels" -}}
+app.kubernetes.io/name: {{ .component }}
+app.kubernetes.io/instance: {{ .context.Release.Name }}
+app.kubernetes.io/component: {{ .component }}
+app.kubernetes.io/managed-by: {{ .context.Release.Service }}
+helm.sh/chart: {{ include "cloudmart.chart" .context }}
+{{- end }}
+
+{{/*
+Component selector labels
+*/}}
+{{- define "cloudmart.componentSelectorLabels" -}}
+app.kubernetes.io/name: {{ .component }}
+app.kubernetes.io/instance: {{ .context.Release.Name }}
+{{- end }}

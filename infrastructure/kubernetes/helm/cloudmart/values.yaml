@@ -34,11 +34,6 @@ apiGateway:
     port: 3000
     targetPort: 3000
     nodePort: 30007
-  config:
-    PRODUCT_SERVICE_URL: "http://cloudmart-product-service-service:8000"
-    ORDER_SERVICE_URL: "http://cloudmart-order-service-service:8080"
-    USER_SERVICE_URL: "http://cloudmart-user-service-service:3001"
-    REDIS_URL: "redis://cloudmart-redis-service:6379"
 
 productService:
   replicas: 2
@@ -56,8 +51,6 @@ productService:
   service:
     port: 8000
     targetPort: 8000
-  config:
-    REDIS_URL: "redis://cloudmart-redis-service:6379"
 
 orderService:
   replicas: 2

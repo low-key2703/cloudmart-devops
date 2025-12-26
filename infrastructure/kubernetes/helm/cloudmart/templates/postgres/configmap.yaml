@@ -1,7 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cloudmart-postgres-database-configmap
+  name: {{ include "cloudmart.componentName" (dict "component" "postgres-database" "context" .) }}-configmap
   namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cloudmart.componentLabels" (dict "component" "postgres-database" "context" .) | nindent 4 }}
 data:
   {{- toYaml .Values.postgres.config | nindent 2 }}

@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloudmart-order-service-deployment
+  name: {{ include "cloudmart.componentName" (dict "component" "order-service" "context" .) }}-deployment
   namespace: {{ .Values.namespace }}
   labels:
-    app: order-service
+    {{- include "cloudmart.componentLabels" (dict "component" "order-service" "context" .) | nindent 4 }}
 spec:
   replicas: {{ .Values.orderService.replicas }}
   selector:
     matchLabels:
-      app: order-service
+      {{- include "cloudmart.componentSelectorLabels" (dict "component" "order-service" "context" .) | nindent 6 }}
   template:
     metadata:
       labels:
-        app: order-service
+        {{- include "cloudmart.componentSelectorLabels" (dict "component" "order-service" "context" .) | nindent 8 }}
     spec:
       containers:
         - name: order-service

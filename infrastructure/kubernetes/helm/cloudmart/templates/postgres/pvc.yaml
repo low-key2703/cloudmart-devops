@@ -1,8 +1,10 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: cloudmart-postgres-database-pvc
+  name: {{ include "cloudmart.componentName" (dict "component" "postgres-database" "context" .) }}-pvc
   namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cloudmart.componentLabels" (dict "component" "postgres-database" "context" .) | nindent 4 }}
 spec:
   accessModes:
     - ReadWriteOnce
