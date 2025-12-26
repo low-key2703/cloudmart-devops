@@ -25,7 +25,7 @@ spec:
             - configMapRef:
                 name: {{ include "cloudmart.componentName" (dict "component" "api-gateway" "context" .) }}-configmap
             - secretRef:
-                name: cloudmart-jwt-secret
+                name: {{ .Release.Name }}-jwt-secret
           resources:
             {{- toYaml .Values.apiGateway.resources | nindent 12 }}
 

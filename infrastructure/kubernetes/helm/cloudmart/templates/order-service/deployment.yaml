@@ -23,7 +23,7 @@ spec:
             - containerPort: 8080
           envFrom:
             - secretRef:
-                name: cloudmart-order-service-secret
+                name: {{ .Release.Name }}-order-service-secret
           resources:
             {{- toYaml .Values.orderService.resources | nindent 12 }}
 

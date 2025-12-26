@@ -23,9 +23,9 @@ spec:
             - containerPort: 3001
           envFrom:
             - secretRef:
-                name: cloudmart-user-service-secret
+                name: {{ .Release.Name }}-user-service-secret
             - secretRef:
-                name: cloudmart-jwt-secret
+                name: {{ .Release.Name }}-jwt-secret
           resources:
             {{- toYaml .Values.userService.resources | nindent 12 }}
 

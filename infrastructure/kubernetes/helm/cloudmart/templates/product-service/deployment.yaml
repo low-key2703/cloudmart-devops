@@ -23,7 +23,7 @@ spec:
             - containerPort: 8000
           envFrom:
             - secretRef:
-                name: cloudmart-product-service-secret
+                name: {{ .Release.Name }}-product-service-secret
             - configMapRef:
                 name: {{ include "cloudmart.componentName" (dict "component" "product-service" "context" .) }}-configmap
           resources:
