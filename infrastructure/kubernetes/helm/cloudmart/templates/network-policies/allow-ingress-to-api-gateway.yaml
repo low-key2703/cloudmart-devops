@@ -1,0 +1,27 @@
+{{- if .Values.networkPolicies.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-allow-ingress-to-api-gateway
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: allow-ingress-to-api-gateway
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "cloudmart.chart" . }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "cloudmart.componentSelectorLabels" (dict "component" "api-gateway" "context" .) | nindent 6 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000
+{{- end }}
