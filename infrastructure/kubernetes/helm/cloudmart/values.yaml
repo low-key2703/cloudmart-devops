@@ -34,6 +34,16 @@ apiGateway:
     port: 3000
     targetPort: 3000
     nodePort: 30007
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    cpu:
+      enabled: true
+      targetAverageUtilization: 70
+    memory:
+      enabled: false
+      targetAverageUtilization: 80
 
 productService:
   replicas: 2
@@ -51,6 +61,16 @@ productService:
   service:
     port: 8000
     targetPort: 8000
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    cpu:
+      enabled: true
+      targetAverageUtilization: 70
+    memory:
+      enabled: false
+      targetAverageUtilization: 80
 
 orderService:
   replicas: 2
@@ -68,6 +88,16 @@ orderService:
   service:
     port: 8080
     targetPort: 8080
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    cpu:
+      enabled: true
+      targetAverageUtilization: 70
+    memory:
+      enabled: false
+      targetAverageUtilization: 80
 
 userService:
   replicas: 2
@@ -87,6 +117,16 @@ userService:
     targetPort: 3001
     type: NodePort
     nodePort: 30008
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    cpu:
+      enabled: true
+      targetAverageUtilization: 70
+    memory:
+      enabled: false
+      targetAverageUtilization: 80
 
 postgres:
   replicas: 1
@@ -116,3 +156,20 @@ ingress:
   tls:
     enabled: true
     secretName: cloudmart-tls-secret
+
+networkPolicies:
+  enabled: true
+
+sealedSecrets:
+  enabled: true
+  jwt:
+    JWT_SECRET: AgCZZpOIM+2Yp0BrZf0x8AmvqSAyVUq5c/ttAtidAmLK/uod+Ks6yizLVveixuFSZU+yWRI2q/3TLgKd2ak5pfNhEsfnqcpLl/8b2zrNM7pDD2vx+b2LEZIg9HxdS6kwUemn9aKQvrtdFBB/6Ms0m7V+pMRNO+kcR0d0Bxgl2bKyzw7S09IdNdUFDt0UlQyVYF0H9u2Bj4rcw/RAlTRvwoZX0ydm8K4SFEt6LjJv4RXkkkzzeJgUhv50gOcNIGeL4sbwGdWogpmXotLbA5Fwl84QU0g8tunOou806M/g7Mr3qS3fryUyEeUTZJT6EKoAdxp0RHHqPpQSVrlyKC33cKIxLkIiWHIMp7wZmo5/Zo+NPZ0nYbNjn/GVr/foPZEZ9V6wnABcH5TzFrJgpPeCgXs10TB/sNtyhibGNrpahnXq2Po5czLaJJqlmw4ZmWxQXZHiWjskd3/j6gHMfeiF/TBQkm8OsP++yEifAQpuPWP65bBGsuLyTzo8X65p9Lps4QPg6jYSQfH5kYGDHlzvwiW6vi/btk2od0TAR4fQ48R75Ace2ehhbBpZCyzfMKEoKViUEaU73BW4edRckuU3VER7oQbdUjxbLULiVeoZw17POF1vdEp+k7arkPHfA0nLkyb2ULxCennx65TJMhY8OtWkixrNN6iR55tNgPqhe64KVJrsdjGXBWIhIGXu0KZI/WZ9EAgsRdTEtW2fwjYZTxJGUVXp7yUXzs0ICD74Tn+9acdrYkso4uE8wPh2GsebcEIyMFyG1ia1yqYgsNmynWmGgfEwQekS/0vXo+AEo7h2wtJWC5ON2toQ
+  postgres:
+    POSTGRES_USER: AgCXK+yj9n4MUxwxRNiBAfIPGz1ocRbl/0BoTAvWddmnQe2xQJ2y59H92YB5VguiIlqvbUiYL29369zb6mju8YEgWYF7AQIA44eEd0cSwz7GXU8kHNPanzI6EqacrL2BaDzXRpyDwfQzq8oayvx67YN/fl6Q8ZppN/TBPM06TPXZf3iPq+b2QqcfuQFBH5kRMeuN78GQb2Qexh6b270wlBQIaGEY+JrEHXR2VJcYtnkAcgUOyiiYBuNMRnBV6nBu0cgusRZi4YDW9aatZ3d2MXjZ33VBVb0cgzTu9IF60rLLCQawL0mLNgWWipW6Ot5goFSwX3FPIgPCpNm5c3sLTpC22hHSKPnRCo62dCKWhYRfPcFjF6lblvq7GjdEWCvQRE4kEi+0xJkfwwENVfImY4CcFZoQvBE9MDDasx/UOnY1ToaS7o8Ke3mKzDHp+rzlcVUC/k555M0s5QkJ6Wjr2q3An5Pc7D2GaJLVhxtkaSSVXcXmwtwTnF2Ujm1VAoYlnsr4Re5gGS/EXw2M65HWXsRLsiJ0q/JdlKIcVsbcfMt+qi1HbzDETUaH8OY27TZ2wF79tJ2ElBzOxGrN93UCzs2eUE1T5qNNQso3q3xwTr0dbdo+k7mcj9J4h3wJyyGGPhAbFWB7FRHcfNlvKM0Z/Fp02WHLVMztDi9945DWCPxa2oHDXxEqD/xEbza4ZEiH3jIyUdEG3f720g==
+    POSTGRES_PASSWORD: AgAOayEP8MtcctgRudkz+feJja3SKUuv7jWeClNhQDBxJNZMZdDv7LSRFSwS57mAm+EuJBDD+ZsYz7LE/pCrt+TGB7/+WO3NrGduMOrutdQRVfgsCLicgk/SQJ/ZGBIPezdSQVVUj3Eh2lIBUjDGoos7Rvsn2VsoTIYImwL7O7Ks+pwiFWinB1xBMhHFXQ7f9C0qNwYRVoTkz08iBLZVL7Cz/CLvG8CQaFcPWm8VmSpqorJQCGc/A8zIQDnrDp5oJeplMUKQZYyhtuCT1Hs+BrPvsxCsRXMcUdQlInxEazfoLfK9ZeIdCh/Y/ljqwkcWKNqXxVfH3+3PoHxRnB6Juf3G01hqU7AVS/Kpf+ofQU0ndGZ0eAu3ZtGA7RYTm+qN7r4v/iLIalLGVm6ciSDxnugwNEvzNEd3GmWAlweBNLph8+W+tCQ5B4lDZSeesrhXQSjUXF18EV5jOZK4jTACeDEThQZhL7DUp59BtF9c1Orms0j7RJxfteSr2c8p3FzgEQNIPBjyDofx7i/Gz/jp8YziRSbCS3vs9lt5D2I1aImhwGz4pToi7OuUdOJ1jiN5EHe0s4anWZDrA2SGPYZwy9PFK1NqwUa9atClyZsAOr36f4TOoqhmVVuT/oXhGcfoIQh7fgD3ASmcQAbrH1py6bu0CWnS4RZDf6JO4azVMf048ac13k3mSAaWYHJodTG2yXYRykOsQDBsoQ==
+  productService:
+    DATABASE_URL: AgCIasBnRIHSGQzvsT0yhZCdZTR54Ggxce8q9OXO/4omsUirPyMk3Z/lREEKl9hx3FTXje7OgC0Hc8I0qo1JBclVky3H3fA2hm0NTYVOWe5HZbOtop2+hG9LKqodFkV4GYH8S4XpXT+jyzqj55HmI+SLqzHaTJ8RfEtNKj5fdd1egT5vBPX/me39hSdBWVoWx4ddXSSABzF99fs8aXm2lW68FYyACmPHi0WBWiBiVgpcbnB2knwPF1Te+zxK3M67X4CwWaphj76Xz+lttI0BUkcB14d9RLLGdXS2cI+aGD0T38M1c3RWmxJotfHW88YNWgPeNVCYQvImIjV8WKvd1xmjrbTGYt7DMsB1u+to0TGmiUYTWb67PDJpFraIg2H1J23bMtbeFs8vNK25eJe/cbMIN+2KCXON+yGU+QguPe8wWPUk6PzhXa9a8H3A5p7+DdnX3bB1YJVIzex9etvDqX7aKnt2nkHh57iFlE3U/aNzddT9BghxSLVK5NHOsQg4pl3bGsrcFcfaPwl+zeRXiwT+jAAclziTInUpe19N6b6wcRwgRvE7yCPHjF0Uos3B1R51NV4awuKyHhDvZM3yfWtdw/sWUntfDmb2BQWA+X2pgy/O5Og1RgjsuY6pimL992rQg5jBHyM18nqsPhlx0ew+uNug3VLFmKTxLMM4cLLLjxpZnuVqpsF1gcgPsdkI+Wc5RxqY3q3n1id0tMmSsaNPEBYW3GMy/niMuloqXyP4Iz3Krh48feCwZLrN92ZKfyNkSLCAcSt0hPsct1J4oZYxk5Y5llYrCHky+OMtNAGqcn0=
+  orderService:
+    DATABASE_URL: AgAWl+7/hXlzQrWsE8PLd9zebdN+VTLZ1JJBvKyFvDHkK8RdAmDIi8uNcatRvOXVG/nXQwFjmJniLZMrJOXiMQLfXnSZ5GaLo5F+C1oFegIie6RDlCso90UYK1Vm29DqbOFJswpuBxhB8E7W55gDB+qp0+Sm78reqB0d4jg/QAVn3u9imauUyRVyQCzg2BVwhh+i9VbWyjk9rAhSe9OptUGh9nMFTBPdnsuqQPGXf/sinvN5+/lClt4B8hsis8UhV+5MxUFaau0c4FMB34+df6n2nR9011nIOZsUpaYnO68FVOG8ejm5bnUkCDj5+OP1q0j0IvfOX4FI26udYiAGtrjqBUNl43/0WCw8wRbY9dZfuuFbUPC59C4AJZ3nBs0qVKSAbdNSMaRJcOZ2NPo5eYORKvOWqCnHahPmZBew+u/SsMfCAEHGifcEiKVOQqBnAdmfXB5aRE/o3brs+LUqEOpHF1I4loKxyb7qaUcmpH0c9HsjeUl4F9dS30l6WFTtHedYV2wY+zAdaLf1Gb12lc0KKAQnlj3lBdJpTTrOIUvj3X2TlvZ1EMMDdIwC/2kQAutGD1xCCId58gJ/SjiSDrqPscatAP47HHHaAdHbT8BsVQiIzVwch0il+VU0vPeLoxlp0z+TP6HfGoIvAXCpRyJmdqYwJR7R1Q7ZPfSj10f2J9XKvgi/2m0IW4OmN9rGC0stTy0muTwI+mmjXrDa0dfNLQZIDNaR1G1RAmSa36SavGnk7Zkf8JyMWZWd+hO5id9+GFcqjTPFnoj1/YSYmuPVk6uDmK8LBp4MuG36xmwI6/db93LalwuLe19rN5wuEUfT
+  userService:
+    DATABASE_URL: AgBwVnaPV6QqiFW/WLpSozhf01yBZtdmP5SUnqej04GmCPUF/Ng5zVbFy+lh5Bw/23hwB5WnAupRpnDLHgtcCmYXmVmyE/A5RwQ5gb/LGcIqHEYRvHiEpuUKGVDYz09SfnnTC7QJp7tEsRp82gEFKRPqiCNmn3PyAGmFrvXjz83k1yVDyEXFw0wWZ2C4WMRsKAW/OLzkvpg7dzWAjx88woSLESI2crq2y6MhwH+YFxCKgbU3+x4naZK3d9XJ244mWrcKsIY+RFDIHomOI516uSohlBlvoCl5ApBdYdTp3rNzV0SABX1z84EOnW17KstFRjKTFDVoMDxd4Q9AMF7CL8WZvk7N2QgCkFSZE5fO1AcbLO+GssY1Rfjsa2yX2sdbMK9QWcckCXSHxrPXR1L+LqGhvBR1u6YfxqRGZdAwbJEQb0NkGqNzUreZF/0pc7EXVTjoXrSqYDscvA7/K3gLSNBYOhv4UcXmh88TPSYqoMvZ/7089S4VXb8WExJT6EposBtxHnldv4xElZhqsRwL+bSvXvUnqk+6UwPsLUNPOxoU7i7wLmbTJKx/glMa90rVvjgPrUXmqWPDKfoOmjgCFcdmjlKlndPLkUNs7U+65FT3iZ6VQgjn4JxBeKZlFk2Ia5MaAGcF/4qyhpmE8rcUKo/d1TpmDNcnod4+AJUmXSLKmVhG23RQQ8GxmGA1LqHZtIHtAmOwTH6wD+3saRBXYFBZl3zZxBl6QAzT9bQ5c4My4D8eHpMGjhRJwurT9yz6qYws2v5PT+bQlg2QSi4fRudPjKzDU/WEqfmd4AdRidxWKm0=

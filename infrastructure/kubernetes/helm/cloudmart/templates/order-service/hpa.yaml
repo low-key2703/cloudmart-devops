@@ -1,0 +1,33 @@
+{{- if .Values.orderService.hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "cloudmart.componentName" (dict "component" "order-service" "context" .) }}-hpa
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "cloudmart.componentLabels" (dict "component" "order-service" "context" .) | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "cloudmart.componentName" (dict "component" "order-service" "context" .) }}-deployment
+  minReplicas: {{ .Values.orderService.hpa.minReplicas }}
+  maxReplicas: {{ .Values.orderService.hpa.maxReplicas }}
+  metrics:
+    {{- if .Values.orderService.hpa.cpu.enabled }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.orderService.hpa.cpu.targetAverageUtilization }}
+    {{- end }}
+    {{- if .Values.orderService.hpa.memory.enabled }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.orderService.hpa.memory.targetAverageUtilization }}
+    {{- end }}
+{{- end }}
