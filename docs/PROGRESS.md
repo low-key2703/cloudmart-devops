@@ -10,6 +10,7 @@
 - Git + GitHub
 
 ### Microservices
+
 | Service | Tech | Port | Status |
 |---------|------|------|--------|
 | API Gateway | Node.js/Express | 3000 | ✅ Complete |
@@ -37,7 +38,7 @@ Location: `infrastructure/kubernetes/base/`
 - Liveness/Readiness probes
 - Resource requests/limits
 
-### Helm Charts
+### Helm Charts 
 Location: `infrastructure/kubernetes/helm/cloudmart/`
 
 **Chart Structure:**
@@ -51,34 +52,54 @@ Location: `infrastructure/kubernetes/helm/cloudmart/`
 - Ingress host and TLS config
 - Service types (NodePort/ClusterIP)
 
-**Deployed and tested via:**
+### Helm Polish 
+
+**Custom Helpers (`_helpers.tpl`):**
+- `cloudmart.componentName` — Dynamic resource names
+- `cloudmart.componentLabels` — Kubernetes standard labels
+- `cloudmart.componentSelectorLabels` — Matching selectors
+
+**All 17 templates updated:**
+- Dynamic names (e.g., `cloudmart-api-gateway-deployment`)
+- Kubernetes recommended labels (`app.kubernetes.io/*`)
+- Dynamic service URLs in ConfigMaps
+
+**Documentation added:**
+- `templates/NOTES.txt` — Post-install instructions
+- `README.md` — Chart documentation
+
+**Validated:**
 ```bash
-helm install cloudmart . -n cloudmart-dev
+helm lint .                                    # ✅ Passed
+helm template . | kubectl apply --dry-run=client -f -  # ✅ Passed
 ```
 
----
 
-## In Progress
-- Helm polish (_helpers.tpl, NOTES.txt) - Optional
-
-## Pending
+## Pending 
 - Horizontal Pod Autoscaler (HPA)
 - Network Policies
 - Sealed Secrets
-- CI/CD (GitHub Actions)
+- GitHub Actions pipelines
+- Docker image push to GHCR
 - GitOps (ArgoCD)
 - Monitoring (Prometheus, Grafana, Loki)
-- Security (Trivy, RBAC)
+- Security scanning (Trivy)
+- RBAC
 
 ---
 
 ## Quick Reference
+
 ```bash
 # Helm deployment
 cd infrastructure/kubernetes/helm/cloudmart
 helm install cloudmart . -n cloudmart-dev
 helm upgrade cloudmart . -n cloudmart-dev
 helm list -n cloudmart-dev
+
+# Validate chart
+helm lint .
+helm template test . | kubectl apply --dry-run=client -f -
 
 # Build images into Minikube
 eval $(minikube docker-env)
@@ -90,7 +111,7 @@ curl -k https://cloudmart.local:<port>/health
 
 # Debug
 kubectl get pods -n cloudmart-dev
-kubectl logs -n cloudmart-dev <pod-name>
+kubectl logs -n cloudmart-dev -l app.kubernetes.io/name=api-gateway
 ```
 
 ---
