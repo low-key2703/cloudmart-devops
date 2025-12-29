@@ -32,6 +32,11 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+      - name: Security Audit
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
       - name: Install and lint
         uses: golangci/golangci-lint-action@v7
         with:

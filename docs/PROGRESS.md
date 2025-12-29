@@ -63,6 +63,8 @@ Location: `infrastructure/kubernetes/helm/cloudmart/`
 - **Helm Lint Workflow:** Validates chart on PR/push
 - **Dependency Caching:** pip, Go modules, npm (faster builds)
 - **ESLint Config:** Added for Node.js services
+- **Security Audits:** npm audit, pip-audit, govulncheck
+- **IaC Scanning:** Checkov for Helm charts
 
 ## Pending
 - GitOps (ArgoCD)

@@ -32,7 +32,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --no-cache-dir -r requirements.txt
-          pip install pylint pytest
+          pip install pylint pytest pip-audit
+
+      - name: Security Audit
+        run: pip-audit
 
       - name: Run pylint
         run: pylint app/ run.py --fail-under=6.0

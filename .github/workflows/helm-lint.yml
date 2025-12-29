@@ -33,3 +33,10 @@ jobs:
           helm template cloudmart infrastructure/kubernetes/helm/cloudmart \
             --namespace cloudmart-dev \
             --debug
+
+      - name: Checkov IaC scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: 'infrastructure/kubernetes/helm/cloudmart'
+          framework: 'helm'
+          soft_fail: true
