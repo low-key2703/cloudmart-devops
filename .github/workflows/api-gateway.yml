@@ -34,7 +34,7 @@ jobs:
           npm install eslint
 
       - name: Lint
-        run: npx eslint src/ --ext .js
+        run: npx eslint@8 src/ --ext .js
 
       - name: Build Docker image
         run: docker build -t api-gateway:${{ github.sha }} .
