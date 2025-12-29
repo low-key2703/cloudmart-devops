@@ -10,7 +10,6 @@
 - Git + GitHub
 
 ### Microservices
-
 | Service | Tech | Port | Status |
 |---------|------|------|--------|
 | API Gateway | Node.js/Express | 3000 | ✅ Complete |
@@ -28,7 +27,6 @@
 
 ### Kubernetes (Raw Manifests)
 Location: `infrastructure/kubernetes/base/`
-
 - Namespace (`cloudmart-dev`)
 - All 4 microservices (Deployments + Services)
 - PostgreSQL (StatefulSet + PVC)
@@ -38,80 +36,61 @@ Location: `infrastructure/kubernetes/base/`
 - Liveness/Readiness probes
 - Resource requests/limits
 
-### Helm Charts 
+### Helm Charts
 Location: `infrastructure/kubernetes/helm/cloudmart/`
-
-**Chart Structure:**
 - 17 templated resources
-- Environment-specific values (`values.yaml`, `values-prod.yaml`)
-- Organized by service (redis/, api-gateway/, postgres/, etc.)
+- Environment-specific values
+- Custom helpers (_helpers.tpl)
+- Kubernetes recommended labels
+- Documentation (NOTES.txt, README.md)
 
-**Templated:**
-- Namespace, replicas, images, resources
-- Storage size/class for PostgreSQL
-- Ingress host and TLS config
-- Service types (NodePort/ClusterIP)
+### Security & Scaling
+- **HPA:** 4 autoscalers (api-gateway, product, order, user)
+- **Network Policies:** 8 policies with default deny
+- **Sealed Secrets:** 5 secrets (db, redis, jwt, services)
 
-### Helm Polish 
+### GitHub Actions CI/CD 
+| Service | Linter | Tests | Trivy | GHCR |
+|---------|--------|-------|-------|------|
+| Product Service | pylint | pytest | ✅ | ✅ |
+| Order Service | golangci-lint | go test | ✅ | ✅ |
+| API Gateway | eslint | - | ✅ | ✅ |
+| User Service | eslint | - | ✅ | ✅ |
 
-**Custom Helpers (`_helpers.tpl`):**
-- `cloudmart.componentName` — Dynamic resource names
-- `cloudmart.componentLabels` — Kubernetes standard labels
-- `cloudmart.componentSelectorLabels` — Matching selectors
+**Pipeline:** Checkout → Setup → Install → Lint → Test → Build → Scan → Push
 
-**All 17 templates updated:**
-- Dynamic names (e.g., `cloudmart-api-gateway-deployment`)
-- Kubernetes recommended labels (`app.kubernetes.io/*`)
-- Dynamic service URLs in ConfigMaps
+### CI Enhancements 
+- **Helm Lint Workflow:** Validates chart on PR/push
+- **Dependency Caching:** pip, Go modules, npm (faster builds)
+- **ESLint Config:** Added for Node.js services
+- **Security Audits:** npm audit, pip-audit, govulncheck
+- **IaC Scanning:** Checkov for Helm charts
 
-**Documentation added:**
-- `templates/NOTES.txt` — Post-install instructions
-- `README.md` — Chart documentation
-
-**Validated:**
-```bash
-helm lint .                                    # ✅ Passed
-helm template . | kubectl apply --dry-run=client -f -  # ✅ Passed
-```
-
-
-## Pending 
-- Horizontal Pod Autoscaler (HPA)
-- Network Policies
-- Sealed Secrets
-- GitHub Actions pipelines
-- Docker image push to GHCR
+## Pending
 - GitOps (ArgoCD)
 - Monitoring (Prometheus, Grafana, Loki)
-- Security scanning (Trivy)
 - RBAC
 
 ---
 
 ## Quick Reference
-
 ```bash
-# Helm deployment
-cd infrastructure/kubernetes/helm/cloudmart
-helm install cloudmart . -n cloudmart-dev
-helm upgrade cloudmart . -n cloudmart-dev
-helm list -n cloudmart-dev
+# Helm
+make helm-upgrade
+make pods
+make status
 
-# Validate chart
-helm lint .
-helm template test . | kubectl apply --dry-run=client -f -
+# Build images
+make build
 
-# Build images into Minikube
-eval $(minikube docker-env)
-docker-compose build
+# GitHub Actions
+# Trigger: push/PR to main with path changes
 
-# Access via Ingress
-minikube service ingress-nginx-controller -n ingress-nginx --url
-curl -k https://cloudmart.local:<port>/health
-
-# Debug
-kubectl get pods -n cloudmart-dev
-kubectl logs -n cloudmart-dev -l app.kubernetes.io/name=api-gateway
+# GHCR Images
+ghcr.io/low-key2703/product-service
+ghcr.io/low-key2703/order-service
+ghcr.io/low-key2703/api-gateway
+ghcr.io/low-key2703/user-service
 ```
 
 ---
