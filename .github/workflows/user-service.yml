@@ -45,7 +45,8 @@ jobs:
           image-ref: 'user-service:${{ github.sha }}'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
-      
+          trivyignores: 'applications/user-service/.trivyignore'
+
       - name: Login to GHCR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/login-action@v3

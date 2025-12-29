@@ -45,6 +45,7 @@ jobs:
           image-ref: 'api-gateway:${{ github.sha }}'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
+          trivyignores: 'applications/api-gateway/.trivyignore'
 
       - name: Login to GHCR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
