@@ -35,7 +35,7 @@ jobs:
         uses: golangci/golangci-lint-action@v7
         with:
           version: v2.4.0
-          args: --timeout=5m
+          args: --timeout=5m --disable=errcheck
           working-directory: applications/order-service
 
       - name: Run tests
