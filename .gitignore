@@ -13,6 +13,7 @@ vendor/
 # IDE
 .vscode/
 .idea/
+*.swp
 
 # OS files
 .DS_Store
@@ -42,3 +43,4 @@ logs/
 !*-secret.example.yaml
 infrastructure/kubernetes/base/ingress/certs/
 secrets-plaintext/
+!**/*sealed-secret.yaml
