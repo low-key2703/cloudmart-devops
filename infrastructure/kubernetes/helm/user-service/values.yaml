@@ -1,0 +1,39 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/low-key2703/user-service
+  tag: main
+  pullPolicy: Always
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "250m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
+
+service:
+  type: NodePort
+  port: 3001
+  targetPort: 3001
+  nodePort: 30008
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  cpu:
+    enabled: true
+    targetAverageUtilization: 70
+  memory:
+    enabled: false
+    targetAverageUtilization: 80
+
+sealedSecrets:
+  enabled: true
+  databaseUrl: AgBwVnaPV6QqiFW/WLpSozhf01yBZtdmP5SUnqej04GmCPUF/Ng5zVbFy+lh5Bw/23hwB5WnAupRpnDLHgtcCmYXmVmyE/A5RwQ5gb/LGcIqHEYRvHiEpuUKGVDYz09SfnnTC7QJp7tEsRp82gEFKRPqiCNmn3PyAGmFrvXjz83k1yVDyEXFw0wWZ2C4WMRsKAW/OLzkvpg7dzWAjx88woSLESI2crq2y6MhwH+YFxCKgbU3+x4naZK3d9XJ244mWrcKsIY+RFDIHomOI516uSohlBlvoCl5ApBdYdTp3rNzV0SABX1z84EOnW17KstFRjKTFDVoMDxd4Q9AMF7CL8WZvk7N2QgCkFSZE5fO1AcbLO+GssY1Rfjsa2yX2sdbMK9QWcckCXSHxrPXR1L+LqGhvBR1u6YfxqRGZdAwbJEQb0NkGqNzUreZF/0pc7EXVTjoXrSqYDscvA7/K3gLSNBYOhv4UcXmh88TPSYqoMvZ/7089S4VXb8WExJT6EposBtxHnldv4xElZhqsRwL+bSvXvUnqk+6UwPsLUNPOxoU7i7wLmbTJKx/glMa90rVvjgPrUXmqWPDKfoOmjgCFcdmjlKlndPLkUNs7U+65FT3iZ6VQgjn4JxBeKZlFk2Ia5MaAGcF/4qyhpmE8rcUKo/d1TpmDNcnod4+AJUmXSLKmVhG23RQQ8GxmGA1LqHZtIHtAmOwTH6wD+3saRBXYFBZl3zZxBl6QAzT9bQ5c4My4D8eHpMGjhRJwurT9yz6qYws2v5PT+bQlg2QSi4fRudPjKzDU/WEqfmd4AdRidxWKm0=
+
+# JWT secret is shared - deployed via infrastructure chart
+sharedSecrets:
+  jwtSecretName: jwt-secret

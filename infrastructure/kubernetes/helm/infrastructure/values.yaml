@@ -1,0 +1,55 @@
+redis:
+  replicas: 1
+  image:
+    repository: redis
+    tag: 7-alpine
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "125m"
+    limits:
+      memory: "128Mi"
+      cpu: "250m"
+  service:
+    port: 6379
+    targetPort: 6379
+
+postgres:
+  replicas: 1
+  image:
+    repository: postgres
+    tag: 15-alpine
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "500m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+  service:
+    port: 5432
+    targetPort: 5432
+  storage:
+    size: 1Gi
+    # className: standard
+  config:
+    POSTGRES_DB: cloudmart
+
+ingress:
+  enabled: true
+  className: nginx
+  host: cloudmart.local
+  tls:
+    enabled: true
+    secretName: cloudmart-tls-secret
+
+networkPolicies:
+  enabled: true
+
+sealedSecrets:
+  enabled: true
+  jwt:
+    JWT_SECRET: AgCZZpOIM+2Yp0BrZf0x8AmvqSAyVUq5c/ttAtidAmLK/uod+Ks6yizLVveixuFSZU+yWRI2q/3TLgKd2ak5pfNhEsfnqcpLl/8b2zrNM7pDD2vx+b2LEZIg9HxdS6kwUemn9aKQvrtdFBB/6Ms0m7V+pMRNO+kcR0d0Bxgl2bKyzw7S09IdNdUFDt0UlQyVYF0H9u2Bj4rcw/RAlTRvwoZX0ydm8K4SFEt6LjJv4RXkkkzzeJgUhv50gOcNIGeL4sbwGdWogpmXotLbA5Fwl84QU0g8tunOou806M/g7Mr3qS3fryUyEeUTZJT6EKoAdxp0RHHqPpQSVrlyKC33cKIxLkIiWHIMp7wZmo5/Zo+NPZ0nYbNjn/GVr/foPZEZ9V6wnABcH5TzFrJgpPeCgXs10TB/sNtyhibGNrpahnXq2Po5czLaJJqlmw4ZmWxQXZHiWjskd3/j6gHMfeiF/TBQkm8OsP++yEifAQpuPWP65bBGsuLyTzo8X65p9Lps4QPg6jYSQfH5kYGDHlzvwiW6vi/btk2od0TAR4fQ48R75Ace2ehhbBpZCyzfMKEoKViUEaU73BW4edRckuU3VER7oQbdUjxbLULiVeoZw17POF1vdEp+k7arkPHfA0nLkyb2ULxCennx65TJMhY8OtWkixrNN6iR55tNgPqhe64KVJrsdjGXBWIhIGXu0KZI/WZ9EAgsRdTEtW2fwjYZTxJGUVXp7yUXzs0ICD74Tn+9acdrYkso4uE8wPh2GsebcEIyMFyG1ia1yqYgsNmynWmGgfEwQekS/0vXo+AEo7h2wtJWC5ON2toQ
+  postgres:
+    POSTGRES_USER: AgCXK+yj9n4MUxwxRNiBAfIPGz1ocRbl/0BoTAvWddmnQe2xQJ2y59H92YB5VguiIlqvbUiYL29369zb6mju8YEgWYF7AQIA44eEd0cSwz7GXU8kHNPanzI6EqacrL2BaDzXRpyDwfQzq8oayvx67YN/fl6Q8ZppN/TBPM06TPXZf3iPq+b2QqcfuQFBH5kRMeuN78GQb2Qexh6b270wlBQIaGEY+JrEHXR2VJcYtnkAcgUOyiiYBuNMRnBV6nBu0cgusRZi4YDW9aatZ3d2MXjZ33VBVb0cgzTu9IF60rLLCQawL0mLNgWWipW6Ot5goFSwX3FPIgPCpNm5c3sLTpC22hHSKPnRCo62dCKWhYRfPcFjF6lblvq7GjdEWCvQRE4kEi+0xJkfwwENVfImY4CcFZoQvBE9MDDasx/UOnY1ToaS7o8Ke3mKzDHp+rzlcVUC/k555M0s5QkJ6Wjr2q3An5Pc7D2GaJLVhxtkaSSVXcXmwtwTnF2Ujm1VAoYlnsr4Re5gGS/EXw2M65HWXsRLsiJ0q/JdlKIcVsbcfMt+qi1HbzDETUaH8OY27TZ2wF79tJ2ElBzOxGrN93UCzs2eUE1T5qNNQso3q3xwTr0dbdo+k7mcj9J4h3wJyyGGPhAbFWB7FRHcfNlvKM0Z/Fp02WHLVMztDi9945DWCPxa2oHDXxEqD/xEbza4ZEiH3jIyUdEG3f720g==
+    POSTGRES_PASSWORD: AgAOayEP8MtcctgRudkz+feJja3SKUuv7jWeClNhQDBxJNZMZdDv7LSRFSwS57mAm+EuJBDD+ZsYz7LE/pCrt+TGB7/+WO3NrGduMOrutdQRVfgsCLicgk/SQJ/ZGBIPezdSQVVUj3Eh2lIBUjDGoos7Rvsn2VsoTIYImwL7O7Ks+pwiFWinB1xBMhHFXQ7f9C0qNwYRVoTkz08iBLZVL7Cz/CLvG8CQaFcPWm8V

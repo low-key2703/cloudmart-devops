@@ -1,0 +1,8 @@
+apiVersion: v2
+name: infrastructure
+description: CloudMart Infrastructure - PostgreSQL, Redis, Ingress, Network Policies, Shared Secrets
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: Lokesh Agarwal

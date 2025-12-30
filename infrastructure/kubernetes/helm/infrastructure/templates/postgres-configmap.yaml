@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  labels:
+    {{- include "infrastructure.componentLabels" (dict "component" "postgres" "context" .) | nindent 4 }}
+data:
+  {{- toYaml .Values.postgres.config | nindent 2 }}

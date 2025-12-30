@@ -1,0 +1,20 @@
+{{ .Chart.Name }} has been deployed!
+
+== Service ==
+  Name: {{ include "user-service.fullname" . }}
+  Port: {{ .Values.service.port }}
+  Type: {{ .Values.service.type }}
+{{- if eq .Values.service.type "NodePort" }}
+  NodePort: {{ .Values.service.nodePort }}
+{{- end }}
+
+== Verify ==
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ .Chart.Name }}
+
+== Access ==
+{{- if eq .Values.service.type "NodePort" }}
+  minikube service {{ include "user-service.fullname" . }} -n {{ .Release.Namespace }} --url
+{{- else }}
+  kubectl port-forward svc/{{ include "user-service.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+{{- end }}
+  curl http://localhost:{{ .Values.service.port }}/health

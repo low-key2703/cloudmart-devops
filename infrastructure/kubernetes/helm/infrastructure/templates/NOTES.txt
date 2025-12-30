@@ -1,0 +1,38 @@
+CloudMart Infrastructure has been deployed!
+
+== Release Info ==
+  Name:      {{ .Release.Name }}
+  Namespace: {{ .Release.Namespace }}
+
+== Services Deployed ==
+  - PostgreSQL: postgres:5432
+  - Redis:      redis:6379
+{{- if .Values.ingress.enabled }}
+  - Ingress:    {{ .Values.ingress.host }}
+{{- end }}
+
+== Verify ==
+  kubectl get pods -n {{ .Release.Namespace }}
+  kubectl get svc -n {{ .Release.Namespace }}
+
+== Access ==
+{{- if .Values.ingress.enabled }}
+  # Add to /etc/hosts:
+  echo "$(minikube ip) {{ .Values.ingress.host }}" | sudo tee -a /etc/hosts
+
+  # Access via Ingress:
+  curl -k https://{{ .Values.ingress.host }}/health
+{{- end }}
+
+  # Port-forward PostgreSQL:
+  kubectl port-forward svc/postgres 5432:5432 -n {{ .Release.Namespace }}
+
+  # Port-forward Redis:
+  kubectl port-forward svc/redis 6379:6379 -n {{ .Release.Namespace }}
+
+== Next Steps ==
+  Deploy the services:
+  - helm install api-gateway ./api-gateway -n {{ .Release.Namespace }}
+  - helm install product-service ./product-service -n {{ .Release.Namespace }}
+  - helm install order-service ./order-service -n {{ .Release.Namespace }}
+  - helm install user-service ./user-service -n {{ .Release.Namespace }}

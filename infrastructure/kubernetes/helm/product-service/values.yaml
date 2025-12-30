@@ -1,0 +1,37 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/low-key2703/product-service
+  tag: "main"
+  pullPolicy: Always
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "250m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  cpu:
+    enabled: true
+    targetAverageUtilization: 70
+  memory:
+    enabled: false
+    targetAverageUtilization: 80
+
+config:
+  redisUrl: "redis://redis:6379"
+
+sealedSecrets:
+  enabled: true
+  databaseUrl: AgCIasBnRIHSGQzvsT0yhZCdZTR54Ggxce8q9OXO/4omsUirPyMk3Z/lREEKl9hx3FTXje7OgC0Hc8I0qo1JBclVky3H3fA2hm0NTYVOWe5HZbOtop2+hG9LKqodFkV4GYH8S4XpXT+jyzqj55HmI+SLqzHaTJ8RfEtNKj5fdd1egT5vBPX/me39hSdBWVoWx4ddXSSABzF99fs8aXm2lW68FYyACmPHi0WBWiBiVgpcbnB2knwPF1Te+zxK3M67X4CwWaphj76Xz+lttI0BUkcB14d9RLLGdXS2cI+aGD0T38M1c3RWmxJotfHW88YNWgPeNVCYQvImIjV8WKvd1xmjrbTGYt7DMsB1u+to0TGmiUYTWb67PDJpFraIg2H1J23bMtbeFs8vNK25eJe/cbMIN+2KCXON+yGU+QguPe8wWPUk6PzhXa9a8H3A5p7+DdnX3bB1YJVIzex9etvDqX7aKnt2nkHh57iFlE3U/aNzddT9BghxSLVK5NHOsQg4pl3bGsrcFcfaPwl+zeRXiwT+jAAclziTInUpe19N6b6wcRwgRvE7yCPHjF0Uos3B1R51NV4awuKyHhDvZM3yfWtdw/sWUntfDmb2BQWA+X2pgy/O5Og1RgjsuY6pimL992rQg5jBHyM18nqsPhlx0ew+uNug3VLFmKTxLMM4cLLLjxpZnuVqpsF1gcgPsdkI+Wc5RxqY3q3n1id0tMmSsaNPEBYW3GMy/niMuloqXyP4Iz3Krh48feCwZLrN92ZKfyNkSLCAcSt0hPsct1J4oZYxk5Y5llYrCHky+OMtNAGqcn0=

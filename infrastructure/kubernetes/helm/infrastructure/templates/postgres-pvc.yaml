@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  labels:
+    {{- include "infrastructure.componentLabels" (dict "component" "postgres" "context" .) | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.postgres.storage.className }}
+  storageClassName: {{ .Values.postgres.storage.className }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.postgres.storage.size }}

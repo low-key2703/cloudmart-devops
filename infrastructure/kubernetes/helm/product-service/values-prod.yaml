@@ -1,0 +1,25 @@
+replicaCount: 3
+
+image:
+  repository: ghcr.io/low-key2703/product-service
+  tag: stable    # Use stable/versioned tag in prod, not "main"
+  pullPolicy: Always
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "750m"
+  limits:
+    memory: "512Mi"
+    cpu: "1000m"
+
+hpa:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 12
+  cpu:
+    enabled: true
+    targetAverageUtilization: 70
+  memory:
+    enabled: true
+    targetAverageUtilization: 80

@@ -37,12 +37,27 @@ Location: `infrastructure/kubernetes/base/`
 - Resource requests/limits
 
 ### Helm Charts
-Location: `infrastructure/kubernetes/helm/cloudmart/`
-- 17 templated resources
-- Environment-specific values
-- Custom helpers (_helpers.tpl)
+Location: `infrastructure/kubernetes/helm/`
+- Split from umbrella chart into per-service charts
+- Separate charts for:
+  - infrastructure (postgres, redis, shared secrets, ingress)
+  - api-gateway
+  - product-service
+  - order-service
+  - user-service
+- Environment-driven values
 - Kubernetes recommended labels
-- Documentation (NOTES.txt, README.md)
+- HPA, NetworkPolicies, SealedSecrets templated
+- Legacy umbrella chart removed
+
+### GitOps (ArgoCD)
+- ArgoCD installed in `argocd` namespace
+- Application manifests defined per component
+  Location: `infrastructure/kubernetes/argocd/`
+- One ArgoCD Application per Helm chart
+- Manual sync workflow (no auto-prune)
+- Namespaces created via ArgoCD
+- Git is the single source of truth
 
 ### Security & Scaling
 - **HPA:** 4 autoscalers (api-gateway, product, order, user)

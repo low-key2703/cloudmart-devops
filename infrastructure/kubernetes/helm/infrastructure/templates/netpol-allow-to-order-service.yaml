@@ -1,0 +1,22 @@
+{{- if .Values.networkPolicies.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-to-order-service
+  labels:
+    {{- include "infrastructure.networkPolicyLabels" (dict "name" "allow-to-order-service" "context" .) | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: order-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: api-gateway
+      ports:
+        - protocol: TCP
+          port: 8080
+{{- end }}

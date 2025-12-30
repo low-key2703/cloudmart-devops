@@ -29,9 +29,8 @@ cloudmart-devops/
 │   └── user-service/      # Node.js/Express
 ├── infrastructure/        # IaC
 │   ├── terraform/         # Cloud resources
-│   └── kubernetes/        # K8s manifests
+│   └── kubernetes/        # K8s Helm charts + ArgoCD apps
 ├── .github/workflows/     # CI/CD pipelines
-├── gitops/               # ArgoCD configurations
 ├── monitoring/           # Prometheus, Grafana configs
 ├── scripts/              # Automation scripts
 └── docs/                 # Documentation

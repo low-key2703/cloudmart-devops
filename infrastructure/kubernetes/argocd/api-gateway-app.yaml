@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: api-gateway
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: cloudmart
+    environment: dev
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/low-key2703/cloudmart-devops.git'
+    targetRevision: main
+    path: 'infrastructure/kubernetes/helm/api-gateway'
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cloudmart-dev
+  syncPolicy: {}

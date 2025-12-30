@@ -1,0 +1,41 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/low-key2703/api-gateway
+  tag: main
+  pullPolicy: Always
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "250m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
+
+service:
+  type: NodePort
+  port: 3000
+  targetPort: 3000
+  nodePort: 30007
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  cpu:
+    enabled: true
+    targetAverageUtilization: 70
+  memory:
+    enabled: false
+    targetAverageUtilization: 80
+
+config:
+  productServiceUrl: "http://product-service:8000"
+  orderServiceUrl: "http://order-service:8080"
+  userServiceUrl: "http://user-service:3001"
+  redisUrl: "redis://redis:6379"
+
+# JWT secret is shared - deployed via infrastructure chart
+sharedSecrets:
+  jwtSecretName: jwt-secret
