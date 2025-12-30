@@ -72,6 +72,7 @@ jobs:
         run: |
           docker tag order-service:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/order-service:${{ github.sha }}
           docker tag order-service:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/order-service:latest
+          docker tag order-service:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/order-service:main
           docker push ghcr.io/${{ github.repository_owner }}/order-service:${{ github.sha }}
           docker push ghcr.io/${{ github.repository_owner }}/order-service:latest
-
+          docker push ghcr.io/${{ github.repository_owner }}/order-service:main
