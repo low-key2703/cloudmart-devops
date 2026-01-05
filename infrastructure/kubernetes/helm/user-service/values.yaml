@@ -36,3 +36,9 @@ sealedSecrets:
 # JWT secret is shared - deployed via infrastructure chart
 sharedSecrets:
   jwtSecretName: jwt-secret
+
+monitoring:
+  enabled: true
+  path: /metrics
+  interval: 15s
+  scrapeTimeout: 10s
