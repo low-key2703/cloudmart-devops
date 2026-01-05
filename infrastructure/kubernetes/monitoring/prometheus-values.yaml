@@ -49,7 +49,7 @@ grafana:
   
   # Persistence for dashboards
   persistence:
-    enabled: true
+    enabled: false
     size: 1Gi
   
   # Resources
