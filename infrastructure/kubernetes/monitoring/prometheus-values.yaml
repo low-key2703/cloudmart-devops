@@ -22,8 +22,8 @@ prometheus:
     # Resources - right-sized for Minikube
     resources:
       requests:
-        cpu: 200m
-        memory: 512Mi
+        cpu: 100m
+        memory: 256Mi
       limits:
         cpu: 500m
         memory: 1Gi
@@ -55,11 +55,11 @@ grafana:
   # Resources
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
+      cpu: 50m
+      memory: 128Mi
     limits:
       cpu: 200m
-      memory: 512Mi
+      memory: 256Mi
   
   # Datasources - Prometheus auto-configured!
   # (Chart does this automatically)
