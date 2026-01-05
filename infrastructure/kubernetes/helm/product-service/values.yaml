@@ -1,4 +1,4 @@
-replicaCount: 3
+replicaCount: 2
 
 image:
   repository: ghcr.io/low-key2703/product-service
@@ -31,6 +31,7 @@ hpa:
 
 config:
   redisUrl: "redis://redis:6379"
+  APP_VERSION: "v1.0.0"
 
 sealedSecrets:
   enabled: true
