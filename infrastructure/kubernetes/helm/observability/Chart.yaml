@@ -1,0 +1,25 @@
+apiVersion: v2
+name: observability
+description: CloudMart Observability Stack - Prometheus, Loki, Promtail, Grafana Dashboards
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+maintainers:
+  - name: Lokesh Agarwal
+
+dependencies:
+  - name: kube-prometheus-stack
+    version: 80.10.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kube-prometheus-stack.enabled
+
+  - name: loki
+    version: 6.22.0
+    repository: https://grafana.github.io/helm-charts
+    condition: loki.enabled
+
+  - name: promtail
+    version: 6.17.1
+    repository: https://grafana.github.io/helm-charts
+    condition: promtail.enabled

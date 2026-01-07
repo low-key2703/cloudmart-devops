@@ -1,0 +1,42 @@
+CloudMart Observability Stack Deployed Successfully!
+
+Installed Components:
+{{- if .Values.kube-prometheus-stack.enabled }}
+Prometheus Stack (Metrics)
+  {{- if .Values.kube-prometheus-stack.grafana.enabled }}
+  Grafana Dashboard UI
+  {{- end }}
+  {{- if .Values.kube-prometheus-stack.alertmanager.enabled }}
+  Alertmanager
+  {{- end }}
+{{- end }}
+{{- if .Values.loki.enabled }}
+Loki (Log Aggregation)
+{{- end }}
+{{- if .Values.promtail.enabled }}
+Promtail (Log Collection)
+{{- end }}
+
+Access Grafana:
+  kubectl port-forward -n {{ .Release.Namespace }} svc/prometheus-grafana 3000:80
+  URL: http://localhost:3000
+  
+  Username: admin
+  Password: (from grafana-admin-secret)
+
+Query Logs in Grafana:
+  1. Go to Explore (compass icon)
+  2. Select "Loki" datasource
+  3. Query: {namespace="cloudmart-dev"}
+
+Query Metrics:
+  1. Select "Prometheus" datasource
+  2. Query: rate(http_requests_total[5m])
+
+Dashboards Available:
+  • CloudMart - Infrastructure
+  • CloudMart - Application
+  • CloudMart - Business Metrics
+
+For more information:
+  kubectl get all -n {{ .Release.Namespace }}

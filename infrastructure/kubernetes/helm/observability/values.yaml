@@ -1,0 +1,180 @@
+# OBSERVABILITY STACK CONFIGURATION
+
+# Feature flags to enable/disable components
+
+# Prometheus Stack (Metrics + Grafana)
+kube-prometheus-stack:
+  enabled: true  # Master switch for entire Prometheus stack
+  
+  fullnameOverride: "prometheus"
+  
+  prometheus:
+    enabled: true  # Prometheus server
+    prometheusSpec:
+      retention: 15d
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+      serviceMonitorSelector:
+        matchLabels:
+          release: prometheus
+      scrapeInterval: 15s
+      evaluationInterval: 15s
+  
+  grafana:
+    enabled: true  # Grafana dashboard UI
+    admin:
+      existingSecret: grafana-admin-secret
+      userKey: admin-user
+      passwordKey: admin-password
+    persistence:
+      enabled: false
+      size: 1Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        isDefault: false
+        editable: true
+        jsonData:
+          maxLines: 1000
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        labelValue: "1"
+        folder: /tmp/dashboards
+        searchNamespace: cloudmart-monitoring
+        provider:
+          foldersFromFilesStructure: true
+  
+  alertmanager:
+    enabled: true  # Alert management
+    alertmanagerSpec:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
+  
+  prometheus-node-exporter:
+    enabled: true  # Node-level metrics
+  
+  kube-state-metrics:
+    enabled: true  # K8s object metrics
+  
+  defaultRules:
+    create: true
+    rules:
+      alertmanager: true
+      etcd: false
+      general: true
+      k8s: true
+      kubeApiserver: false
+      kubePrometheusNodeRecording: true
+      kubeScheduler: false
+      network: true
+      node: true
+      prometheus: true
+
+# Loki (Log Aggregation)
+loki:
+  enabled: true  # Master switch for Loki
+  
+  deploymentMode: SingleBinary
+  
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem
+    schemaConfig:
+      configs:
+        - from: 2026-01-01
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+    limits_config:
+      reject_old_samples: true
+      reject_old_samples_max_age: 168h
+      ingestion_rate_mb: 10
+      ingestion_burst_size_mb: 20
+  
+  singleBinary:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 300m
+        memory: 384Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    persistence:
+      enabled: true
+      size: 5Gi
+  
+  chunksCache:
+    enabled: false
+  
+  resultsCache:
+    enabled: false
+  
+  gateway:
+    enabled: false
+  
+  backend:
+    replicas: 0
+  
+  read:
+    replicas: 0
+  
+  write:
+    replicas: 0
+  
+  monitoring:
+    selfMonitoring:
+      enabled: false
+
+# Promtail (Log Collection)
+promtail:
+  enabled: true  # Master switch for Promtail
+  
+  config:
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+    snippets:
+      pipelineStages:
+        - cri: {}
+  
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
