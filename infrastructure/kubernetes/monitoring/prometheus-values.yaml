@@ -72,6 +72,17 @@ grafana:
       jsonData:
         maxLines: 1000
 
+  # Sidecar to auto-load dashboards from Configmaps
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      folder: /tmp/dashboards
+      searchNamespace: cloudmart-monitoring
+      provider:
+        foldersFromFilesStructure: true
+
   # Datasources - Prometheus auto-configured!
   # (Chart does this automatically)
 
