@@ -688,7 +688,7 @@ data:
               "editorMode": "code",
               "expr": "histogram_quantile(0.50, \r\n  sum(rate(http_request_duration_seconds_bucket{job=\"api-gateway\"}[5m])) by (le, job)\r\n) * 1000\r\nor\r\nhistogram_quantile(0.50, \r\n  sum(rate(user_service_http_request_duration_seconds_bucket{job=\"user-service\"}[5m])) by (le, job)\r\n) * 1000\r\nor\r\nhistogram_quantile(0.50, \r\n  sum(rate(product_service_request_duration_seconds_bucket{job=\"product-service\"}[5m])) by (le, job)\r\n) * 1000",
               "hide": false,
-              "legendFormat": "{{job}} - p50",
+              "legendFormat": "{{`{{`}}job{{`}}`}} - p50",
               "range": true,
               "refId": "A"
             },
@@ -701,7 +701,7 @@ data:
               "expr": "histogram_quantile(0.95, \r\n  sum(rate(http_request_duration_seconds_bucket{job=\"api-gateway\"}[5m])) by (le, job)\r\n) * 1000\r\nor\r\nhistogram_quantile(0.95, \r\n  sum(rate(user_service_http_request_duration_seconds_bucket{job=\"user-service\"}[5m])) by (le, job)\r\n) * 1000\r\nor\r\nhistogram_quantile(0.95, \r\n  sum(rate(product_service_request_duration_seconds_bucket{job=\"product-service\"}[5m])) by (le, job)\r\n) * 1000",
               "hide": false,
               "instant": false,
-              "legendFormat": "{{job}} - p95",
+              "legendFormat": "{{`{{`}}job{{`}}`}} - p95",
               "range": true,
               "refId": "B"
             },
@@ -714,7 +714,7 @@ data:
               "expr": "histogram_quantile(0.99, \r\n  sum(rate(http_request_duration_seconds_bucket{job=\"api-gateway\"}[5m])) by (le, job)\r\n) * 1000\r\nor\r\nhistogram_quantile(0.99, \r\n  sum(rate(user_service_http_request_duration_seconds_bucket{job=\"user-service\"}[5m])) by (le, job)\r\n) * 1000\r\nor\r\nhistogram_quantile(0.99, \r\n  sum(rate(product_service_request_duration_seconds_bucket{job=\"product-service\"}[5m])) by (le, job)\r\n) * 1000",
               "hide": false,
               "instant": false,
-              "legendFormat": "{{job}} - p99",
+              "legendFormat": "{{`{{`}}job{{`}}`}} - p99",
               "range": true,
               "refId": "C"
             }
