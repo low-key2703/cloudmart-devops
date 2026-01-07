@@ -60,7 +60,18 @@ grafana:
     limits:
       cpu: 200m
       memory: 256Mi
-  
+ 
+  # Additional datasources - Loki for logs
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki:3100
+      isDefault: false
+      editable: true
+      jsonData:
+        maxLines: 1000
+
   # Datasources - Prometheus auto-configured!
   # (Chart does this automatically)
 

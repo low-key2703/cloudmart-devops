@@ -1,0 +1,15 @@
+config:
+  clients:
+    - url: http://loki:3100/loki/api/v1/push
+  
+  snippets:
+    pipelineStages:
+      - cri: {}
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
