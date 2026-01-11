@@ -69,7 +69,190 @@ kube-prometheus-stack:
   
   alertmanager:
     enabled: true  # Alert management
+    config:
+      global:
+        # Global notification settings
+        resolve_timeout: 5m
+
+        # Slack webhook URL (SealedSecret in prod)
+        # slack_api_url: '<SLACK_WEBHOOK_URL>'
+
+        # Email SMTP settings (optional - for email notifications)
+        # smtp_smarthost: 'smtp.gmail.com:587'
+        # smtp_from: 'alertmanager@cloudmart.com'
+        # smtp_auth_username: '<EMAIL>'
+        # smtp_auth_password: '<APP_PASSWORD>'  #SealedSecret
+        # smtp_require_tls: true
+
+      # Alert routing configuration
+      route:
+        # Default receiver for all alerts
+        receiver: 'default-receiver'
+
+        # Group alerts by these labels
+        group_by: ['alertname', 'severity', 'namespace']
+
+        # Wait time before sending initial notification for a group
+        group_wait: 30s
+
+        # Wait time before sending notification about new alerts in existing group
+        group_interval: 5m
+
+        # Minimum time between notifications for same alert
+        repeat_interval: 4h
+
+        # Sub-routes for specific alert types
+        routes:
+        # CRITICAL alerts - immediate notification, shorter repeat
+        - match:
+            severity: critical
+          receiver: 'critical-receiver'
+          group_wait: 10s
+          group_interval: 2m
+          repeat_interval: 30m
+          continue: true        # Also send to default receiver
+
+        # WARNING alerts - standard timing
+        - match:
+            severity: warning
+          receiver: 'warning-receiver'
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 4h
+
+        # INFO alerts - longer intervals, less urgent
+        - match:
+            severity: info
+          receiver: 'info-receiver'
+          group_wait: 5m
+          group_interval: 10m
+          repeat_interval: 12h
+
+        # Database-specific alerts
+        - match_re:
+            category: '(database|cache)'
+          receiver: 'database-team'
+          continue: false
+
+        # Business metrics alerts - notify business team
+        - match:
+            category: business
+          receiver: 'business-team'
+          continue: false
+
+      # Inhibition rules - prevent alert spam
+      inhibit_rules:
+      # If service is down, don't alert on high error rate
+      - source_match:
+          severity: 'critical'
+          alertname: 'ServiceDown'
+        target_match:
+          severity: 'critical'
+          alertname: 'HighErrorRate'
+        equal: ['service', 'namespace']
+
+      # If pod has high CPU, don't alert on slow response
+      - source_match:
+          severity: 'critical'
+          alertname: 'HighPodCPU'
+        target_match:
+          severity: 'warning'
+          alertname: 'SlowResponseTime'
+        equal: ['pod', 'namespace']
+
+      # Alert receivers
+      receivers:
+      # Default receiver - console logs (always active)
+      - name: 'default-receiver'
+        # Webhook for logging/testing
+        webhook_configs:
+        - url: 'http://localhost:5001/webhook'
+          send_resolved: true
+
+      # Critical alerts receiver
+      - name: 'critical-receiver'
+        # Slack notifications for critical alerts
+        # Configure slack_api_url in prod
+        # slack_configs:
+        # - channel: '#critical-alerts'
+        #   title: 'CRITICAL: {{ .GroupLabels.alertname }}'
+        #   text: |-
+        #     {{ range .Alerts }}
+        #     *Alert:* {{ .Labels.alertname }}
+        #     *Severity:* {{.Labels.severity }}
+        #     *Summary:* {{ .Annotations.summary }}
+        #     *Description:* {{ .Annotations.description }}
+        #     {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+        #     {{ end }}
+        #   send_resolved: true
+        #   color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+
+        # Email notifications (optional)
+        # email_configs:
+        # - to: 'oncall@cloudmart.com'
+        #   headers:
+        #     Subject: '[CRITICAL] {{ .GroupLabels.alertname }}'
+        #   send_resolved: true
+
+      # Warning alerts receiver
+      - name: 'warning-receiver'
+        # Slack configuration for warnings
+        # slack_configs:
+        # - channel: '#alerts'
+        #   title: 'WARNING: {{ .GroupLabels.alertname }}'
+        #   text: |-
+        #     {{ range .Alerts }}
+        #     *Alert:* {{ .Labels.alertname }}
+        #     *Severity:* {{ .Labels.severity }}
+        #     *Summary:* {{ .Annotations.summary }}
+        #     {{ end }}
+        #   send_resolved: true
+        #   color: '{{ if eq .Status "firing" }}warning{{ else }}good{{ end }}'
+
+      # Info alerts receiver
+      - name: 'info-receiver'
+        # Slack notifications for info (lower priority channel)
+        # slack_configs:
+        # - channel: '#alerts-info'
+        #   title: 'INFO: {{ .GroupLabels.alertname }}'
+        #   send_resolved: false
+
+      # Database team receiver
+      - name: 'database-team'
+        # slack_configs:
+        # - channel: '#database-alerts'
+        #   title: 'Database Alert: {{ .GroupLabels.alertname }}'
+        #   send_resolved: true
+
+        # email_configs:
+        # - to: 'database-team@cloudmart.com'
+
+      # Business team receiver
+      - name: 'business-team'
+        # slack_configs:
+        # - channel: '#business-alerts'
+        #   title: 'Business Metric Alert: {{ .GroupLabels.alertname }}'
+        #   send_resolved: true
+
+        # email_configs:
+        # - to: 'business-team@cloudmart.com'
+
+    # Alertmanager service configuration
+    service:
+      type: ClusterIP
+      port: 9093
+
+    # Alertmanager storage (for silences, notification log)
     alertmanagerSpec:
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 2Gi
+
+      # Resource limits
       resources:
         requests:
           cpu: 50m
@@ -77,6 +260,15 @@ kube-prometheus-stack:
         limits:
           cpu: 100m
           memory: 256Mi
+
+      # Retention period for notifications
+      retention: 120h
+
+      # Log level
+      logLevel: info
+
+      # Replica count (set to 3 for HA in prod)
+      replicas: 1
   
   prometheus-node-exporter:
     enabled: true  # Node-level metrics

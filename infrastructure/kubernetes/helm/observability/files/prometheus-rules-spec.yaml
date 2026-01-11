@@ -1,0 +1,256 @@
+groups:
+- name: application-health
+  interval: 30s
+  rules:
+  - alert: ServiceDown
+    expr: up{namespace="cloudmart-dev"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      category: availability
+    annotations:
+      summary: "Service {{ $labels.job }} is down"
+      description: "Service {{ $labels.job }} has been down for more than 1 minute."
+
+  - alert: HighErrorRate
+    expr: |
+      (
+        sum(rate(http_requests_total{status=~"5..", namespace="cloudmart-dev"}[5m])) by (service)
+        /
+        sum(rate(http_requests_total{namespace="cloudmart-dev"}[5m])) by (service)
+      ) > 0.05
+    for: 2m
+    labels:
+      severity: critical
+      category: performance
+    annotations:
+      summary: "High 5xx error rate on service {{ $labels.service }}"
+      description: "Service {{ $labels.service }} has error rate {{ $value | humanizePercentage }}."
+
+  - alert: ElevatedErrorRate
+    expr: |
+      (
+        sum(rate(http_requests_total{status=~"5..", namespace="cloudmart-dev"}[5m])) by (service)
+        /
+        sum(rate(http_requests_total{namespace="cloudmart-dev"}[5m])) by (service)
+      ) > 0.02
+    for: 5m
+    labels:
+      severity: warning
+      category: performance
+    annotations:
+      summary: "Elevated error rate on service {{ $labels.service }}"
+      description: "Service {{ $labels.service }} has error rate {{ $value | humanizePercentage }}."
+
+  - alert: SlowResponseTime
+    expr: |
+      histogram_quantile(0.95,
+        sum(rate(http_request_duration_seconds_bucket{namespace="cloudmart-dev"}[5m])) by (le, service)
+      ) > 0.5
+    for: 3m
+    labels:
+      severity: warning
+      category: performance
+    annotations:
+      summary: "Slow response time for {{ $labels.service }}"
+      description: "Service {{ $labels.service }} p95 is {{ $value | humanizeDuration }}."
+
+  - alert: VerySlowResponseTime
+    expr: |
+      histogram_quantile(0.95,
+        sum(rate(http_request_duration_seconds_bucket{namespace="cloudmart-dev"}[5m])) by (le, service)
+      ) > 2
+    for: 2m
+    labels:
+      severity: critical
+      category: performance
+    annotations:
+      summary: "Very slow response time for {{ $labels.service }}"
+      description: "Service {{ $labels.service }} p95 is {{ $value | humanizeDuration }}."
+
+- name: infrastructure-resources
+  interval: 30s
+  rules:
+  - alert: HighPodCPU
+    expr: |
+      sum(rate(container_cpu_usage_seconds_total{namespace="cloudmart-dev", container!=""}[5m])) by (pod, namespace)
+      /
+      sum(container_spec_cpu_quota{namespace="cloudmart-dev", container!=""}/container_spec_cpu_period{namespace="cloudmart-dev", container!=""}) by (pod, namespace)
+      > 0.9
+    for: 5m
+    labels:
+      severity: critical
+      category: resources
+    annotations:
+      summary: "High CPU on pod {{ $labels.pod }}"
+      description: "Pod {{ $labels.pod }} using {{ $value | humanizePercentage }} CPU."
+
+  - alert: ElevatedPodCPU
+    expr: |
+      sum(rate(container_cpu_usage_seconds_total{namespace="cloudmart-dev", container!=""}[5m])) by (pod, namespace)
+      /
+      sum(container_spec_cpu_quota{namespace="cloudmart-dev", container!=""}/container_spec_cpu_period{namespace="cloudmart-dev", container!=""}) by (pod, namespace)
+      > 0.75
+    for: 10m
+    labels:
+      severity: warning
+      category: resources
+    annotations:
+      summary: "Elevated CPU on pod {{ $labels.pod }}"
+      description: "Pod {{ $labels.pod }} using {{ $value | humanizePercentage }} CPU."
+
+  - alert: HighPodMemory
+    expr: |
+      sum(container_memory_working_set_bytes{namespace="cloudmart-dev", container!=""}) by (pod, namespace)
+      /
+      sum(container_spec_memory_limit_bytes{namespace="cloudmart-dev", container!=""}) by (pod, namespace)
+      > 0.9
+    for: 5m
+    labels:
+      severity: critical
+      category: resources
+    annotations:
+      summary: "High memory on pod {{ $labels.pod }}"
+      description: "Pod {{ $labels.pod }} using {{ $value | humanizePercentage }} memory."
+
+  - alert: PodFrequentRestarts
+    expr: rate(kube_pod_container_status_restarts_total{namespace="cloudmart-dev"}[15m]) > 0
+    for: 5m
+    labels:
+      severity: critical
+      category: stability
+    annotations:
+      summary: "Pod {{ $labels.pod }} restarting"
+      description: "Pod {{ $labels.pod }} has restarted recently."
+
+  - alert: HighNodeDiskUsage
+    expr: |
+      (
+        node_filesystem_avail_bytes{mountpoint="/", fstype!="tmpfs"}
+        /
+        node_filesystem_size_bytes{mountpoint="/", fstype!="tmpfs"}
+      ) < 0.2
+    for: 10m
+    labels:
+      severity: warning
+      category: resources
+    annotations:
+      summary: "High disk usage on {{ $labels.instance }}"
+      description: "Node {{ $labels.instance }} has less than 20% disk space."
+
+- name: database-alerts
+  interval: 30s
+  rules:
+  - alert: PostgreSQLDown
+    expr: pg_up{namespace="cloudmart-dev"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      category: database
+    annotations:
+      summary: "PostgreSQL is down"
+      description: "PostgreSQL {{ $labels.instance }} is down."
+
+  - alert: PostgreSQLHighConnections
+    expr: |
+      sum(pg_stat_database_numbackends{namespace="cloudmart-dev"}) by (instance)
+      /
+      pg_settings_max_connections{namespace="cloudmart-dev"}
+      > 0.8
+    for: 5m
+    labels:
+      severity: warning
+      category: database
+    annotations:
+      summary: "PostgreSQL high connections"
+      description: "PostgreSQL {{ $labels.instance }} using {{ $value | humanizePercentage }} connections."
+
+  - alert: RedisDown
+    expr: redis_up{namespace="cloudmart-dev"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      category: cache
+    annotations:
+      summary: "Redis is down"
+      description: "Redis {{ $labels.instance }} is down."
+
+  - alert: LowRedisCacheHitRate
+    expr: |
+      (
+        rate(redis_keyspace_hits_total{namespace="cloudmart-dev"}[5m])
+        /
+        (
+          rate(redis_keyspace_hits_total{namespace="cloudmart-dev"}[5m])
+          +
+          rate(redis_keyspace_misses_total{namespace="cloudmart-dev"}[5m])
+        )
+      ) < 0.7
+    for: 10m
+    labels:
+      severity: warning
+      category: cache
+    annotations:
+      summary: "Low Redis cache hit rate"
+      description: "Cache hit rate is {{ $value | humanizePercentage }}."
+
+- name: business-metrics
+  interval: 1m
+  rules:
+  - alert: HighOrderFailureRate
+    expr: |
+      (
+        sum(rate(orders_total{status="failed", namespace="cloudmart-dev"}[5m]))
+        /
+        sum(rate(orders_total{namespace="cloudmart-dev"}[5m]))
+      ) > 0.1
+    for: 3m
+    labels:
+      severity: critical
+      category: business
+    annotations:
+      summary: "High order failure rate"
+      description: "Order failure rate is {{ $value | humanizePercentage }}."
+
+  - alert: LowProductInventory
+    expr: product_stock_quantity{namespace="cloudmart-dev"} < 10
+    for: 5m
+    labels:
+      severity: warning
+      category: business
+    annotations:
+      summary: "Low inventory for {{ $labels.product_id }}"
+      description: "Product {{ $labels.product_name }} has {{ $value }} items left."
+
+  - alert: NoRecentOrders
+    expr: rate(orders_total{namespace="cloudmart-dev"}[10m]) == 0
+    for: 10m
+    labels:
+      severity: info
+      category: business
+    annotations:
+      summary: "No recent orders"
+      description: "No orders in last 10 minutes."
+
+- name: alertmanager-health
+  interval: 30s
+  rules:
+  - alert: AlertmanagerConfigReloadFailed
+    expr: alertmanager_config_last_reload_successful{namespace="cloudmart-monitoring"} == 0
+    for: 5m
+    labels:
+      severity: warning
+      category: monitoring
+    annotations:
+      summary: "Alertmanager config reload failed"
+      description: "Alertmanager {{ $labels.instance }} config reload failed."
+
+  - alert: PrometheusScrapeFailure
+    expr: up{job=~".*prometheus.*", namespace="cloudmart-monitoring"} == 0
+    for: 5m
+    labels:
+      severity: critical
+      category: monitoring
+    annotations:
+      summary: "Prometheus scrape failed"
+      description: "Prometheus cannot scrape {{ $labels.job }}."

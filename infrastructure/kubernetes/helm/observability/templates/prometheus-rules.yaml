@@ -1,0 +1,10 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cloudmart-alerts
+  namespace: cloudmart-monitoring
+  labels:
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+{{ .Files.Get "files/prometheus-rules-spec.yaml" | nindent 2 }}
