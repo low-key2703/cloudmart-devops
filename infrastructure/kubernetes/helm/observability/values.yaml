@@ -26,9 +26,6 @@ kube-prometheus-stack:
         limits:
           cpu: 500m
           memory: 1Gi
-      serviceMonitorSelector:
-        matchLabels:
-          release: prometheus
       scrapeInterval: 15s
       evaluationInterval: 15s
   
