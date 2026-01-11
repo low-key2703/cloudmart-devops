@@ -4,7 +4,7 @@ metadata:
   name: cloudmart-alerts
   namespace: cloudmart-monitoring
   labels:
-    prometheus: kube-prometheus
+    release: observability
     role: alert-rules
 spec:
 {{ .Files.Get "files/prometheus-rules-spec.yaml" | nindent 2 }}
