@@ -145,9 +145,6 @@ make port-forward-alertmanager
 ## Documentation
 
 - [ArgoCD Setup](docs/argocd-setup.md)
-- [Observability Guide](docs/observability-guide.md)
-- [Troubleshooting](docs/troubleshooting.md)
-- [Progress Tracker](docs/progress.md)
 - [Kubernetes README](infrastructure/kubernetes/README.md)
 - [Helm Charts README](infrastructure/kubernetes/helm/README.md)
 
