@@ -19,6 +19,8 @@ kube-prometheus-stack:
             resources:
               requests:
                 storage: 10Gi
+      serviceMonitorSelector: {}  # Empty = scrape all ServiceMonitors
+      serviceMonitorNamespaceSelector: {}  # Empty = from all namespaces
       resources:
         requests:
           cpu: 100m
