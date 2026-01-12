@@ -12,6 +12,9 @@ kube-prometheus-stack:
     enabled: true  # Prometheus server
     prometheusSpec:
       retention: 15d
+      serviceMonitorSelectorNilUsesHelmValues: false   # Disables default
+      serviceMonitorSelector: {}    # Empty - scrape all ServiceMonitors
+      serviceMonitorNamespaceSelector: {}    # Empty - from all namespaces
       storageSpec:
         volumeClaimTemplate:
           spec:
@@ -19,8 +22,6 @@ kube-prometheus-stack:
             resources:
               requests:
                 storage: 10Gi
-      serviceMonitorSelector: {}  # Empty = scrape all ServiceMonitors
-      serviceMonitorNamespaceSelector: {}  # Empty = from all namespaces
       resources:
         requests:
           cpu: 100m
