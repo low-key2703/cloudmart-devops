@@ -71,84 +71,78 @@ groups:
 - name: infrastructure-resources
   interval: 30s
   rules:
-  - alert: HighPodCPU
+  
+  # Pod CPU usage (works without container label)
+  - alert: PodHighCPU
     expr: |
-      sum(rate(container_cpu_usage_seconds_total{namespace="cloudmart-dev", container!=""}[5m])) by (pod, namespace)
-      /
-      sum(container_spec_cpu_quota{namespace="cloudmart-dev", container!=""}/container_spec_cpu_period{namespace="cloudmart-dev", container!=""}) by (pod, namespace)
-      > 0.9
-    for: 5m
-    labels:
-      severity: critical
-      category: resources
-    annotations:
-      summary: "High CPU on pod {{ $labels.pod }}"
-      description: "Pod {{ $labels.pod }} using {{ $value | humanizePercentage }} CPU."
-
-  - alert: ElevatedPodCPU
-    expr: |
-      sum(rate(container_cpu_usage_seconds_total{namespace="cloudmart-dev", container!=""}[5m])) by (pod, namespace)
-      /
-      sum(container_spec_cpu_quota{namespace="cloudmart-dev", container!=""}/container_spec_cpu_period{namespace="cloudmart-dev", container!=""}) by (pod, namespace)
-      > 0.75
-    for: 10m
+      sum(rate(container_cpu_usage_seconds_total{namespace="cloudmart-dev"}[5m])) by (pod, namespace)
+      > 0.3
+    for: 3m
     labels:
       severity: warning
       category: resources
     annotations:
-      summary: "Elevated CPU on pod {{ $labels.pod }}"
-      description: "Pod {{ $labels.pod }} using {{ $value | humanizePercentage }} CPU."
+      summary: "High CPU in pod {{ $labels.pod }}"
+      description: "Pod {{ $labels.pod }} using {{ $value | humanize }} CPU cores (>0.3 cores for 3min)."
 
-  - alert: HighPodMemory
+  # Pod memory usage
+  - alert: PodHighMemory
     expr: |
-      sum(container_memory_working_set_bytes{namespace="cloudmart-dev", container!=""}) by (pod, namespace)
-      /
-      sum(container_spec_memory_limit_bytes{namespace="cloudmart-dev", container!=""}) by (pod, namespace)
-      > 0.9
+      sum(container_memory_working_set_bytes{namespace="cloudmart-dev"}) by (pod, namespace)
+      > 524288000
     for: 5m
     labels:
-      severity: critical
+      severity: warning
       category: resources
     annotations:
-      summary: "High memory on pod {{ $labels.pod }}"
-      description: "Pod {{ $labels.pod }} using {{ $value | humanizePercentage }} memory."
+      summary: "High memory in pod {{ $labels.pod }}"
+      description: "Pod {{ $labels.pod }} using {{ $value | humanize1024 }}B memory (>500MB)."
 
+  # Pod restart alert (guaranteed to work)
   - alert: PodFrequentRestarts
-    expr: rate(kube_pod_container_status_restarts_total{namespace="cloudmart-dev"}[15m]) > 0
-    for: 5m
+    expr: |
+      increase(kube_pod_container_status_restarts_total{namespace="cloudmart-dev"}[15m]) > 2
+    for: 1m
     labels:
-      severity: critical
+      severity: warning
       category: stability
     annotations:
-      summary: "Pod {{ $labels.pod }} restarting"
-      description: "Pod {{ $labels.pod }} has restarted recently."
+      summary: "Pod {{ $labels.pod }} restarting frequently"
+      description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in 15 minutes."
 
-  - alert: HighNodeDiskUsage
+  # Node-level alerts (always work)
+  - alert: NodeHighCPU
     expr: |
-      (
-        node_filesystem_avail_bytes{mountpoint="/", fstype!="tmpfs"}
-        /
-        node_filesystem_size_bytes{mountpoint="/", fstype!="tmpfs"}
-      ) < 0.2
+      (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 0.80
+    for: 3m
+    labels:
+      severity: warning
+      category: resources
+    annotations:
+      summary: "High CPU on Minikube node"
+      description: "Node CPU usage: {{ $value | humanizePercentage }} (threshold: 80%)."
+
+  - alert: NodeHighMemory
+    expr: |
+      (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.85
+    for: 5m
+    labels:
+      severity: warning
+      category: resources
+    annotations:
+      summary: "High memory on Minikube node"
+      description: "Node memory usage: {{ $value | humanizePercentage }} (threshold: 85%)."
+
+  - alert: NodeHighDiskUsage
+    expr: |
+      (1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|fuse.lxcfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|fuse.lxcfs"})) > 0.80
     for: 10m
     labels:
       severity: warning
       category: resources
     annotations:
-      summary: "High disk usage on {{ $labels.instance }}"
-      description: "Node {{ $labels.instance }} has less than 20% disk space."
-
-  - alert: ContainerHighCPU
-    expr: |
-      sum(rate(container_cpu_usage_seconds_total{namespace="cloudmart-dev", container!="", container!="POD"}[5m])) by (pod, container, namespace)
-      > 0.5
-    for: 2m
-    labels:
-      severity: warning
-      category: resources
-    annotations:
-      summary: "High CPU in container {{ $labels.container }}"
-      description: "Container {{ $labels.container }} in pod {{ $labels.pod }} is using {{ $value | humanize }} CPU cores."
+      summary: "High disk usage on Minikube node"
+      description: "Node disk usage: {{ $value | humanizePercentage }} (threshold: 80%)."
 
 - name: database-alerts
   interval: 30s
