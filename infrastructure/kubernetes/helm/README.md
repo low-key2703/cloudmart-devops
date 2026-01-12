@@ -4,10 +4,11 @@ Multi-chart Helm deployment for CloudMart microservices platform.
 
 ## Chart Structure
 
-This directory contains **5 separate Helm charts** (one for infrastructure, four for microservices):
+This directory contains **6 separate Helm charts**:
 ```
 helm/
 ├── infrastructure/      # Shared infrastructure (PostgreSQL, Redis, Ingress, Network Policies, Secrets)
+├── observability/       # Monitoring stack (Prometheus, Grafana, Loki, Alertmanager, Promtail)
 ├── product-service/     # Product catalog microservice
 ├── order-service/       # Order processing microservice
 ├── api-gateway/         # API Gateway (entry point)
@@ -28,10 +29,13 @@ helm/
 # 1. Infrastructure FIRST (required by all services)
 helm install infrastructure helm/infrastructure/ -n cloudmart-dev --create-namespace
 
-# 2. Wait for infrastructure to be ready
+# 2. Observability (optional, but recommended)
+helm install observability helm/observability/ -n cloudmart-monitoring --create-namespace
+
+# 3. Wait for infrastructure to be ready
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=database -n cloudmart-dev --timeout=120s
 
-# 3. Install microservices (any order)
+# 4. Install microservices (any order)
 helm install product-service helm/product-service/ -n cloudmart-dev
 helm install order-service helm/order-service/ -n cloudmart-dev
 helm install api-gateway helm/api-gateway/ -n cloudmart-dev
@@ -42,6 +46,7 @@ helm install user-service helm/user-service/ -n cloudmart-dev
 ```bash
 make helm-install              # Install all charts
 make helm-install-infrastructure
+make helm-install-observability
 make helm-install-product-service
 # etc.
 ```
@@ -54,17 +59,24 @@ Infrastructure (postgres, redis, ingress, network-policies, shared secrets)
     ├── order-service    (needs: postgres, postgres-secret)
     ├── api-gateway      (needs: redis, jwt-secret)
     └── user-service     (needs: postgres, jwt-secret)
+
+Observability (standalone, monitors all services)
+    ├── Prometheus (scrapes metrics from all services)
+    ├── Grafana (visualizes metrics + logs)
+    ├── Loki (aggregates logs)
+    └── Promtail (collects logs from all pods)
 ```
 
 ## Quick Reference
 
-| Chart | Purpose | Key Resources |
-|-------|---------|---------------|
-| infrastructure | Shared components | PostgreSQL, Redis, Ingress, NetworkPolicies, Sealed Secrets (JWT, Postgres) |
-| product-service | Product catalog | Deployment, Service, ConfigMap, HPA, Sealed Secret |
-| order-service | Order processing | Deployment, Service, HPA, Sealed Secret |
-| api-gateway | API entry point | Deployment, Service, ConfigMap, HPA |
-| user-service | User auth | Deployment, Service, HPA, Sealed Secret |
+| Chart | Purpose | Namespace | Key Resources |
+|-------|---------|-----------|---------------|
+| infrastructure | Shared components | cloudmart-dev | PostgreSQL, Redis, Ingress, NetworkPolicies, Sealed Secrets (JWT, Postgres) |
+| observability | Monitoring stack | cloudmart-monitoring | Prometheus, Grafana, Loki, Alertmanager, Promtail |
+| product-service | Product catalog | cloudmart-dev | Deployment, Service, ConfigMap, HPA, Sealed Secret, ServiceMonitor |
+| order-service | Order processing | cloudmart-dev | Deployment, Service, HPA, Sealed Secret, ServiceMonitor |
+| api-gateway | API entry point | cloudmart-dev | Deployment, Service, ConfigMap, HPA, ServiceMonitor |
+| user-service | User auth | cloudmart-dev | Deployment, Service, HPA, Sealed Secret, ServiceMonitor |
 
 ## Configuration
 
@@ -89,12 +101,14 @@ make helm-template
 
 # Upgrade specific chart
 helm upgrade product-service helm/product-service/ -n cloudmart-dev
+helm upgrade observability helm/observability/ -n cloudmart-monitoring
 
 # Upgrade all
 make helm-upgrade
 
 # List releases
 helm list -n cloudmart-dev
+helm list -n cloudmart-monitoring
 
 # Uninstall all
 make helm-uninstall
@@ -121,6 +135,9 @@ See [ArgoCD Setup Guide](../../../docs/argocd-setup.md) for details.
 ### Service-Specific Secrets
 Each service chart contains its own Sealed Secret for DATABASE_URL.
 
+### Monitoring Secrets (in observability chart)
+- `grafana-admin-secret` - Grafana admin credentials
+
 **Creating sealed secrets:**
 ```bash
 # See ../README.md for kubeseal instructions
@@ -139,19 +156,51 @@ http://redis:6379                # Redis
 
 These names are **fixed** and defined in each chart's values.yaml for cross-chart compatibility.
 
+## Observability Features
+
+### Prometheus Metrics
+All services expose `/metrics` endpoint automatically scraped by Prometheus via ServiceMonitors:
+- `http_requests_total` - Request counter
+- `http_request_duration_seconds` - Request latency
+- `product_service_requests_total` - Product-specific metrics
+- `user_service_http_requests_total` - User-specific metrics
+
+### Grafana Dashboards
+3 custom dashboards + built-in Kubernetes dashboards:
+1. CloudMart - Infrastructure (node/pod metrics)
+2. CloudMart - Application (service health, request rates)
+3. CloudMart - Business Metrics (orders, products, users)
+
+### Alert Rules
+20+ custom alerts across 6 categories:
+- Application Health (PodNotReady, HighErrorRate, SlowResponseTime)
+- Infrastructure (PodHighCPU, PodHighMemory, NodeHighDiskUsage)
+- Database (PostgreSQLPodDown, RedisPodDown)
+- Business Metrics (HighOrderFailureRate, LowProductInventory)
+- Monitoring Health (AlertmanagerConfigReloadFailed, PrometheusScrapeFailure)
+
+### Centralized Logging
+- Promtail DaemonSet collects logs from all pods
+- Loki aggregates logs with label-based indexing
+- Grafana provides unified view of metrics + logs
+
 ## Verification
 ```bash
 # Check all pods
 kubectl get pods -n cloudmart-dev
+kubectl get pods -n cloudmart-monitoring
 
 # Check all services
 kubectl get svc -n cloudmart-dev
+kubectl get svc -n cloudmart-monitoring
 
 # Check Helm releases
 helm list -n cloudmart-dev
+helm list -n cloudmart-monitoring
 
 # Detailed status
 make status
+make monitoring
 ```
 
 ## Troubleshooting
@@ -173,6 +222,22 @@ helm template <chart-name> helm/<chart-name>/ -n cloudmart-dev
 ### Sealed secrets not decrypting
 - Verify sealed-secrets controller is running: `kubectl get pods -n kube-system | grep sealed-secrets`
 - Check secret status: `kubectl get sealedsecrets -n cloudmart-dev`
+
+### Prometheus not scraping services
+- Check ServiceMonitors exist: `kubectl get servicemonitor -n cloudmart-dev`
+- Verify RBAC: `kubectl auth can-i list servicemonitors --as=system:serviceaccount:cloudmart-monitoring:prometheus-prometheus -n cloudmart-dev`
+- Check Prometheus config: `kubectl get prometheus -n cloudmart-monitoring -o yaml | grep serviceMonitorSelector`
+- View targets: `make monitoring-targets`
+
+### Grafana password issues
+```bash
+# Get password
+make grafana-password
+
+# Reset password (delete secret, Helm will recreate)
+kubectl delete secret grafana-admin-secret -n cloudmart-monitoring
+helm upgrade observability helm/observability/ -n cloudmart-monitoring
+```
 
 ## Migration from Old Structure
 

@@ -9,13 +9,44 @@ and avoids advanced or future configurations.
 ## Structure
 
     infrastructure/kubernetes/argocd/
-    ├── infrastructure-app.yaml
+    ├── infrastructure-app.yaml        # Postgres, Redis, Ingress, Network Policies
+    ├── observability-app.yaml         # Prometheus, Grafana, Loki, Alertmanager, Promtail
     ├── api-gateway-app.yaml
     ├── product-service-app.yaml
     ├── order-service-app.yaml
     └── user-service-app.yaml
 
+**Total:** 6 ArgoCD Applications
+
 Each file defines one ArgoCD Application.
+
+### Observability Application
+
+Deploys the complete monitoring stack:
+- **Namespace:** cloudmart-monitoring
+- **Chart:** infrastructure/kubernetes/helm/observability
+- **Auto-Sync:** Enabled (selfHeal + prune)
+- **Components:** Prometheus, Grafana, Alertmanager, Loki, Promtail
+- **Dashboards:** Auto-loaded from Git ConfigMaps (3 custom dashboards)
+
+**Access after deployment:**
+```bash
+# Grafana
+kubectl port-forward -n cloudmart-monitoring svc/observability-grafana 3002:80
+# Open http://localhost:3002
+
+# Get password
+kubectl get secret grafana-admin-secret -n cloudmart-monitoring \
+  -o jsonpath='{.data.admin-password}' | base64 -d
+
+# Prometheus
+kubectl port-forward -n cloudmart-monitoring svc/prometheus-operated 9090:9090
+# Open http://localhost:9090
+
+# Alertmanager
+kubectl port-forward -n cloudmart-monitoring svc/alertmanager-operated 9093:9093
+# Open http://localhost:9093
+```
 
 ---
 
@@ -37,7 +68,6 @@ Verify cluster access:
 Install ArgoCD using the official manifests.
 
     kubectl create namespace argocd
-
     kubectl apply -n argocd \
       -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
@@ -62,7 +92,6 @@ Open in browser:
 ## Login
 
 Default credentials:
-
 - Username: admin
 
 Get the initial password:
@@ -96,6 +125,15 @@ From the ArgoCD UI:
 - Click Sync
 - Confirm
 
+From CLI:
+
+    argocd app sync infrastructure
+    argocd app sync observability
+    argocd app sync product-service
+    argocd app sync order-service
+    argocd app sync api-gateway
+    argocd app sync user-service
+
 ---
 
 ## Verify Deployment
@@ -106,11 +144,17 @@ Check namespaces:
 
 Check pods:
 
-    kubectl get pods -A
+    kubectl get pods -n cloudmart-dev
+    kubectl get pods -n cloudmart-monitoring
 
 Check application status:
 
     kubectl get applications -n argocd
+
+Check monitoring stack:
+
+    kubectl get pods -n cloudmart-monitoring
+    kubectl get svc -n cloudmart-monitoring
 
 ---
 
@@ -119,7 +163,9 @@ Check application status:
 - ArgoCD creates namespaces when required
 - Helm charts do not hardcode namespaces
 - Shared resources are deployed via the infrastructure application
-- Sync is manual at this stage
+- Monitoring stack is deployed via the observability application
+- Auto-sync is enabled for observability (self-healing)
+- Manual sync for application services (more control)
 
 ---
 

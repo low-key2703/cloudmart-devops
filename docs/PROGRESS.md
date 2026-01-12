@@ -81,9 +81,67 @@ Location: `infrastructure/kubernetes/helm/`
 - **Security Audits:** npm audit, pip-audit, govulncheck
 - **IaC Scanning:** Checkov for Helm charts
 
+### Observability Stack
+
+**Location:** `infrastructure/kubernetes/helm/observability/`
+
+**Components Deployed:**
+- **Prometheus** (metrics collection & storage)
+  - Scrape interval: 15s, Retention: 15 days
+  - 10Gi PVC for metrics storage
+  - ServiceMonitor auto-discovery across namespaces
+  - Active scrape targets: all microservices, postgres, redis, nodes
+  
+- **Grafana** (visualization)
+  - 3 custom dashboards + built-in Kubernetes dashboards
+  - Prometheus + Loki data sources
+  - Auto-loading dashboards from Git via sidecar
+  - Admin credentials in Sealed Secret
+  
+- **Alertmanager** (alert routing)
+  - 20+ custom alert rules across 6 categories
+  - Severity-based routing (critical/warning/info)
+  - Inhibition rules to prevent alert storms
+  - Ready for Slack/email integration
+  
+- **Loki** (log aggregation)
+  - 7-day log retention
+  - Label-based indexing
+  - 5Gi PVC for log storage
+  
+- **Promtail** (log collection)
+  - DaemonSet on all nodes
+  - Automatic pod log discovery
+  - Kubernetes metadata enrichment
+
+**Custom Dashboards:**
+1. CloudMart - Infrastructure (node/pod metrics)
+2. CloudMart - Application (service health, request rates)
+3. CloudMart - Business Metrics (orders, products, users)
+
+**Alert Rules (20+):**
+- Application Health: PodNotReady, HighErrorRate, SlowResponseTime
+- Infrastructure: PodHighCPU, PodHighMemory, NodeHighDiskUsage
+- Database: PostgreSQLPodDown, RedisPodDown
+- Business Metrics: HighOrderFailureRate, LowProductInventory
+- Monitoring Health: AlertmanagerConfigReloadFailed, PrometheusScrapeFailure
+
+**Key Achievements:**
+- Complete GitOps deployment via ArgoCD
+- Application metrics exposed and scraped from all 4 microservices
+- Alert firing validated (PodHighCPU triggered during load test)
+- Metrics - logs correlation working in Grafana
+- Fixed ServiceMonitor discovery with RBAC + selector configuration
+- All dashboards auto-loaded from Git ConfigMaps
+
+**Troubleshooting Solved:**
+1. **Alertmanager crashloop** → Removed broken webhook URL
+2. **Control plane alerts firing** → Disabled etcd/scheduler/controller monitoring for Minikube
+3. **ServiceMonitors not discovered** → Added RBAC ClusterRole + set `serviceMonitorSelectorNilUsesHelmValues: false`
+4. **Container label missing** → Removed `container!=""` filter from queries
+5. **Dashboard queries failing** → Fixed metric label matching
+
 ## Pending
-- GitOps (ArgoCD)
-- Monitoring (Prometheus, Grafana, Loki)
 - RBAC
 
 ---
