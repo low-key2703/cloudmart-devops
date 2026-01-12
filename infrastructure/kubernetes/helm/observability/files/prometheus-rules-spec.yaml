@@ -2,15 +2,15 @@ groups:
 - name: application-health
   interval: 30s
   rules:
-  - alert: ServiceDown
-    expr: up{namespace="cloudmart-dev"} == 0
-    for: 1m
+  - alert: PodNotReady
+    expr: kube_pod_status_phase{namespace="cloudmart-dev", phase!="Running"} == 1
+    for: 2m
     labels:
       severity: critical
       category: availability
     annotations:
-      summary: "Service {{ $labels.job }} is down"
-      description: "Service {{ $labels.job }} has been down for more than 1 minute."
+      summary: "Pod {{ $labels.pod }} is not ready"
+      description: "Pod {{ $labels.pod }} is in {{ $labels.phase }} state for more than 2 minutes."
 
   - alert: HighErrorRate
     expr: |
@@ -138,18 +138,30 @@ groups:
       summary: "High disk usage on {{ $labels.instance }}"
       description: "Node {{ $labels.instance }} has less than 20% disk space."
 
+  - alert: ContainerHighCPU
+    expr: |
+      sum(rate(container_cpu_usage_seconds_total{namespace="cloudmart-dev", container!="", container!="POD"}[5m])) by (pod, container, namespace)
+      > 0.5
+    for: 2m
+    labels:
+      severity: warning
+      category: resources
+    annotations:
+      summary: "High CPU in container {{ $labels.container }}"
+      description: "Container {{ $labels.container }} in pod {{ $labels.pod }} is using {{ $value | humanize }} CPU cores."
+
 - name: database-alerts
   interval: 30s
   rules:
-  - alert: PostgreSQLDown
-    expr: pg_up{namespace="cloudmart-dev"} == 0
+  - alert: PostgreSQLPodDown
+    expr: kube_pod_status_phase{namespace="cloudmart-dev", pod=~"postgres.*", phase!="Running"} == 1
     for: 1m
     labels:
       severity: critical
       category: database
     annotations:
-      summary: "PostgreSQL is down"
-      description: "PostgreSQL {{ $labels.instance }} is down."
+      summary: "PostgreSQL pod is down"
+      description: "PostgreSQL pod {{ $labels.pod }} is not running."
 
   - alert: PostgreSQLHighConnections
     expr: |
@@ -165,15 +177,15 @@ groups:
       summary: "PostgreSQL high connections"
       description: "PostgreSQL {{ $labels.instance }} using {{ $value | humanizePercentage }} connections."
 
-  - alert: RedisDown
-    expr: redis_up{namespace="cloudmart-dev"} == 0
+  - alert: RedisPodDown
+    expr: kube_pod_status_phase{namespace="cloudmart-dev", pod=~"redis.*", phase!="Running"} == 1
     for: 1m
     labels:
       severity: critical
       category: cache
     annotations:
-      summary: "Redis is down"
-      description: "Redis {{ $labels.instance }} is down."
+      summary: "Redis pod is down"
+      description: "Redis pod {{ $labels.pod }} is not running."
 
   - alert: LowRedisCacheHitRate
     expr: |
@@ -254,3 +266,16 @@ groups:
     annotations:
       summary: "Prometheus scrape failed"
       description: "Prometheus cannot scrape {{ $labels.job }}."
+
+- name: test-alerts
+  interval: 30s
+  rules:
+  - alert: MonitoringStackHealthy
+    expr: up{namespace="cloudmart-monitoring"} == 1
+    for: 1m
+    labels:
+      severity: info
+      category: monitoring
+    annotations:
+      summary: "Monitoring is healthy"
+      description: "This is a test alert - monitoring stack is operational."

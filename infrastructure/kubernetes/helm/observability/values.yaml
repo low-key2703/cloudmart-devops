@@ -159,12 +159,12 @@ kube-prometheus-stack:
 
       # Alert receivers
       receivers:
-      # Default receiver - console logs (always active)
+      # Default receiver
       - name: 'default-receiver'
         # Webhook for logging/testing
-        webhook_configs:
-        - url: 'http://localhost:5001/webhook'
-          send_resolved: true
+        # webhook_configs:
+        # - url: 'http://localhost:5001/webhook'
+        #   send_resolved: true
 
       # Critical alerts receiver
       - name: 'critical-receiver'
@@ -286,6 +286,19 @@ kube-prometheus-stack:
       network: true
       node: true
       prometheus: true
+
+  # Disabling control plane component monitoring (Minikube doesn't expose these, enable in prod)
+  kubeControllerManager:
+    enabled: false
+
+  kubeEtcd:
+    enabled: false
+
+  kubeScheduler:
+    enabled: false
+
+  kubeProxy:
+    enabled: false
 
 # Loki (Log Aggregation)
 loki:
